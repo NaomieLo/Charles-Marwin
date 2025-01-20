@@ -4,7 +4,7 @@ from pyproj import CRS, Transformer
 import math
 import random
 
-dem_path = 'data/NASAdem/MarsMGSMOLA_MAP2_EQUI.tif'
+dem_path = 'data/MarsMGSMOLA_MAP2_EQUI.tif'
 
 #FOR FORWARD TRANSFORMATION
 def setup_transformer(crs):
