@@ -46,7 +46,7 @@ def main():
         transformer = setup_transformer(crs)
         inverse_transformer = setup_reverse_transformer(crs)
 
-    test_random_transformations(num_tests=1000)
+    #test_random_transformations(num_tests=1000)
 
     
     

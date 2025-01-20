@@ -9,7 +9,21 @@ import zipfile
 dem_path_zip = 'data/MarsMGSMOLA_MAP2_EQUI.tif.zip'
 dem_path = 'data/MarsMGSMOLA_MAP2_EQUI.tif'
 
-
+def unzip_dem(zip_file_path, extract_to_path):
+    #If .tif file already exists
+    if os.path.exists(extract_to_path):
+        return
+    
+    #Check zip files exists
+    if not os.path.exists(zip_file_path):
+        raise FileNotFoundError(f"The zip file '{zip_file_path}' does not exist.")
+    
+    #Extract .zip
+    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+        tif_file = zip_ref.namelist()[0]
+        zip_ref.extract(tif_file, path=os.path.dirname(extract_to_path))
+        
+        print(f"Extracted '{tif_file}' to '{extract_to_path}'.")
 
 #FOR FORWARD TRANSFORMATION
 def setup_transformer(crs):
@@ -123,29 +137,6 @@ def test_random_transformations(num_tests):
     print(f"Successful Transformations: {success_count}")
     print(f"Failed Transformations: {failure_count}")
 
-def unzip_dem(zip_file_path, extract_to_path):
-    # Check if the .tif file already exists
-    if os.path.exists(extract_to_path):
-        return
-    
-    #Ensure the zip file exists
-    if not os.path.exists(zip_file_path):
-        raise FileNotFoundError(f"The zip file '{zip_file_path}' does not exist.")
-    
-    print(f"Extracting '{zip_file_path}'...")
-    
-    # Extract the .tif file from the zip archive
-    with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-        # List all files in the zip to find the .tif file
-        tif_files = [f for f in zip_ref.namelist() if f.lower().endswith('.tif')]
-        
-        if not tif_files:
-            raise ValueError("No .tif file found in the zip archive.")
-        
-        # Assuming there's only one .tif file in the archive
-        tif_file = tif_files[0]
-        zip_ref.extract(tif_file, path=os.path.dirname(extract_to_path))
-        print(f"Extracted '{tif_file}' to '{extract_to_path}'.")
 
 
 
