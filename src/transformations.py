@@ -6,8 +6,13 @@ import random
 import os
 import zipfile
 
-dem_path_zip = 'data/MarsMGSMOLA_MAP2_EQUI.tif.zip'
+base_dir=os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(base_dir)
 dem_path = 'data/MarsMGSMOLA_MAP2_EQUI.tif'
+dem_path_zip = 'data/MarsMGSMOLA_MAP2_EQUI.tif.zip'
+
+dem_path = os.path.join(parent_dir,dem_path)
+dem_path_zip = os.path.join(parent_dir,dem_path_zip)
 
 def unzip_dem(zip_file_path, extract_to_path):
     #If .tif file already exists
