@@ -3,6 +3,7 @@ import numpy as np
 from pyproj import CRS, Transformer
 import math
 import random
+import os
 
 from transformations import (
     rowcol_to_xy,
@@ -17,8 +18,13 @@ from transformations import (
 )
 
 def main():
+    base_dir=os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(base_dir)
     dem_path = 'data/MarsMGSMOLA_MAP2_EQUI.tif'
     dem_path_zip = 'data/MarsMGSMOLA_MAP2_EQUI.tif.zip'
+    
+    dem_path = os.path.join(parent_dir,dem_path)
+    dem_path_zip = os.path.join(parent_dir,dem_path_zip)
 
     # Step 1: Unzip the DEM file if necessary
     try:
