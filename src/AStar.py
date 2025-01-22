@@ -36,12 +36,31 @@ class AStar:
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1,1), (-1,1), (-1,-1), (1,-1)]:
             nx, ny = r + dx, c + dy
             if 0 <= ny < self.elevation_map.shape[0] and 0 <= nx < self.elevation_map.shape[1]:
-                neighbors.append((nx, ny))
+                if self.elevation_map[ny,nx]<=21000 and self.elevation_map[ny,nx]>=-8000:#range validation
+                    neighbors.append((nx, ny))
         return neighbors
     
     def get_cost(self, x1, y1, x2, y2):
         '''Calculate movement cost between two neighbouring coords'''
-        elevation_diff = abs(self.elevation_map[y2, x2] - self.elevation_map[y1, x1])
+        
+        curr = self.elevation_map[y1,x1]
+        next = self.elevation_map[y2,x2]
+        
+        #valid elevation check (no 0.0)
+        if curr == 0 and isinstance(curr,float):
+            #invalid number
+            neighbors = self.get_neighbors(y1,x1)
+            #calculate mean values of neighbors and put it back into curr
+            valid_elevations = [self.elevation_map[ny,nx] for nx,ny in neighbors]
+            curr = int(sum(valid_elevations)/len(valid_elevations))
+        if next == 0 and isinstance(curr,float):
+            #invalid number
+            neighbors = self.get_neighbors(y2,x2)
+            #calculate mean values of neighbors and put it back into curr
+            valid_elevations = [self.elevation_map[ny,nx] for nx,ny in neighbors]
+            next = int(sum(valid_elevations)/len(valid_elevations))
+            
+        elevation_diff = abs(next - curr)
         # Add base movement cost (distance)
         diagonal = x1 != x2 and y1 != y2
         base_cost = 1.4142 if diagonal else 1.0  # √2 for diagonal movement
