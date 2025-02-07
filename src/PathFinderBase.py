@@ -49,13 +49,16 @@ class PathFinderBase:
             nx, ny = r + dx, c + dy
             if 0 <= ny < self.elevation_map.shape[0] and 0 <= nx < self.elevation_map.shape[1]:
                 if self.elevation_map[ny,nx]<=21000 and self.elevation_map[ny,nx]>=-8000:#range validation
-                    neighbors.append((nx, ny))
+                    neighbors.append((ny, nx))
+        #print(f"Current Node: ({r}, {c})")
+        #print(f"Neighbors: {neighbors}")
+
         return neighbors
     
     def get_cost(self,x1,y1,x2,y2):
         """Default Implementation"""
-        curr = self.elevation_map[y1,x1]
-        next = self.elevation_map[y2,x2]
+        curr = self.elevation_map[x1,y1]
+        next = self.elevation_map[x2,y2]
         
         #valid elevation check (no 0.0)
         if curr == 0 and isinstance(curr,float):
@@ -76,6 +79,22 @@ class PathFinderBase:
         diagonal = x1 != x2 and y1 != y2
         base_cost = 1.4142 if diagonal else 1.0  # √2 for diagonal movement
         return base_cost + elevation_diff
+    
+    def GeoCoord2RowCol(self,start,goal):
+        #convert lat/long to row/col
+        if self.test_mode:
+            start_row, start_col = start
+            end_row, end_col = goal
+        else:
+            start_lat, start_long = start
+            goal_lat, goal_long = goal
+            
+            start_x, start_y = transformations.latlong_to_xy(start_lat, start_long, self.reverse_transformer)
+            end_x, end_y = transformations.latlong_to_xy(goal_lat, goal_long, self.reverse_transformer)
+
+            start_row, start_col = transformations.xy_to_rowcol(start_x, start_y, ~self.affine_transform)
+            end_row, end_col = transformations.xy_to_rowcol(end_x, end_y, ~self.affine_transform)
+        return start_row,start_col,end_row,end_col
     
     def find_path(self, start, goal):
         """No default Implementation"""

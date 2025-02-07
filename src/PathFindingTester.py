@@ -1,4 +1,5 @@
 import AStar
+import BidirectionalAStar as BidirectionalAStar
 import numpy as np
 
 class PathFindingTester:
@@ -116,6 +117,40 @@ class PathFindingTester:
 
         print(f"\nTotal path cost: {total_cost:.2f}")
     
-        
+    def run_BidirectionAstar_test(self):
+        biAstar = BidirectionalAStar.BidirectionalAStar(True,self.mock_elevation_map)
+        path = biAstar.find_path(self.start,self.goal)
+        print("Path",path)
+        if self.visualization:
+            if self.expected == None:
+                print("Expected: There should be no path found")
+                print("Test result:")
+            else:
+                print("Map with likely path (arrows show movement direction, X marks end):")
+                print(self.print_map_with_path(self.mock_elevation_map, self.expected))
+            if path == None:
+                print("No path found")
+            else:
+                print("\nMap with returned path (arrows show movement direction, X marks end):")
+                print(self.print_map_with_path(self.mock_elevation_map, path))
+
+        steps, total_cost = self.calculate_path_cost(self.mock_elevation_map, path)
+
+        print("\nStep-by-step analysis:")
+        for i, step in enumerate(steps, 1):
+            print(f"\nStep {i}:")
+            print(f"  Move: {step['from']} → {step['to']}")
+            print(f"  Movement type: {'Diagonal' if step['diagonal'] else 'Orthogonal'}")
+            print(f"  Elevation change: {step['elevation_diff']}")
+            print(f"  Step cost: {step['step_cost']:.2f}")
+
+        print(f"\nTotal path cost: {total_cost:.2f}")
+    
+print("===========AStar===========")      
 p = PathFindingTester(True)  
 p.run_Astar_test()
+print("===========================")
+print()
+print("============BiDirection AStar================")
+p = PathFindingTester(True) 
+p.run_BidirectionAstar_test()
