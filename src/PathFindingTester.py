@@ -1,7 +1,7 @@
 import AStar
 import BidirectionalAStar as BidirectionalAStar
 import numpy as np
-
+import time
 class PathFindingTester:
     def __init__(self,visualization):
         self.visualization = visualization
@@ -147,10 +147,17 @@ class PathFindingTester:
         print(f"\nTotal path cost: {total_cost:.2f}")
     
 print("===========AStar===========")      
-p = PathFindingTester(True)  
+p = PathFindingTester(True)
+start=time.time()
 p.run_Astar_test()
+end=time.time()
+total = end-start
+print("Running time:",total,"sec")
 print("===========================")
 print()
 print("============BiDirection AStar================")
 p = PathFindingTester(True) 
+start=time.time()
 p.run_BidirectionAstar_test()
+end=time.time()
+print("Running time:",total,"sec")
