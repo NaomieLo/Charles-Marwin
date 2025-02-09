@@ -1,0 +1,86 @@
+import numpy as np 
+import transformations
+
+class Sensor:
+    
+    MIN_ELEVATION = -8200
+    MAX_ELEVATION = 22000
+    robot_passable_elevation = 100
+    
+
+    def __init__(self, elevation_map, affine_transform):
+        self.elevation_map = elevation_map
+        self.affine_transform = affine_transform
+
+
+    def get_neighbors(self, r, c): # Yijun's code without error handling
+        neighbors = []
+        for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1,1), (-1,1), (-1,-1), (1,-1)]:
+            nx, ny = r + dx, c + dy 
+            neighbors.append((nx, ny))
+        return neighbors
+    
+
+    # Make sure that elevation is within bounds
+    def validate_elevation(self, elevation):
+        if elevation < Sensor.MIN_ELEVATION:
+            return Sensor.MIN_ELEVATION
+        elif elevation > Sensor.MAX_ELEVATION:
+            return Sensor.MAX_ELEVATION
+        return elevation
+
+    
+    # Retrieves terrain height at the given coordinates
+    def get_elevation_at_position(self, x, y):
+        row, col = transformations.xy_to_rowcol(x, y, ~self.affine_transform)
+
+        if 0 <= row < self.elevation_map.shape[0] and 0 <= col < self.elevation_map.shape[1]: # check index out of bounds
+            elevation = self.elevation_map[row, col]
+
+            if elevation == 0.0: # if invalid, handle error
+                return self.estimate_missing_elevation(row, col)
+            
+            return self.validate_elevation(elevation)
+        
+        return None
+            
+
+    # Estimate invalid data (0.0) by taking mean of neighbors
+    def estimate_missing_elevation(self, row, col):
+        valid_elevations = [self.validate_elevation(self.elevation_map[nr, nc])
+                            for nr, nc in Sensor.get_neighbors
+                            if 0 <= nr < self.elevation_map.shape[0] and 
+                            0 <= nc < self.elevation_map.shape[1] and 
+                            self.elevation_map[nr, nc] != 0.0
+                            ]
+        if valid_elevations:
+            return np.mean(valid_elevations)
+    
+        return self.MIN_ELEVATION # to default to lowest possible elevation ASK
+
+
+    # check if movement between two neighbors is possible based on elevation
+    def is_passable(self, x1, y1, x2, y2):
+        elevation1 = self.get_elevation_at_position(x1, y1) # this was 
+        elevation2 = self.get_elevation_at_position(x2, y2)
+
+        if elevation1 is None or elevation2 is None:
+            return False # out of bounds 
+
+        return abs(elevation2-elevation1) <= Sensor.robot_passable_elevation
+    
+
+    # Uses logic that Yijun used to calculate movement cost between two neighboring coordinates
+    def get_cost(self, x1, y1, x2, y2):
+        curr = self.get_elevation_at_position(x1, y1)
+        next = self.get_elevation_at_position(x2, y2)
+
+        if self.is_passable(x1, y1, x2, y2):
+            elevation_diff = abs(next - curr)
+        else:
+            return float('inf') # return infinite cost if any of the elevation are out of bounds
+    
+        diagonal = x1 != x2 and y1 != y2
+        base_cost = 1.4142 if diagonal else 1.0 # √2 for diagonal movement
+
+        return base_cost + elevation_diff
