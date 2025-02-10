@@ -32,12 +32,12 @@ class OpenGLCanvas(OpenGLFrame):
 # PySimpleGUI layout
 layout = [
     [sg.Text("Work in Progress")],
-    [sg.Canvas(key="-CANVAS-")],
+    [sg.Canvas(key="-CANVAS-",size=(400,400),expand_x=True,expand_y=True)],
     [sg.Button("Exit")]
 ]
 
 # Create PySimpleGUI window
-window = sg.Window("OpenGL in PySimpleGUI", layout, finalize=True)
+window = sg.Window("OpenGL in PySimpleGUI", layout, finalize=True,size=(600,600))
 
 # Get the Tkinter Canvas element from PySimpleGUI
 canvas_elem = window["-CANVAS-"].Widget
