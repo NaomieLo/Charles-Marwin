@@ -26,7 +26,7 @@ class OpenGLCanvas(OpenGLFrame):
         gl.glVertex3f(0, 0.5, 0)
         gl.glEnd()
 
-        self.tkSwapBuffers()
+        #self.tkSwapBuffers()
 
 
 # PySimpleGUI layout
