@@ -1,4 +1,5 @@
 import sys
+import shader
 import ctypes
 import OpenGL.GL as gl
 import OpenGL.GLU as glu
@@ -8,28 +9,10 @@ import numpy as np
 import tkinter as tk
 from pyopengltk import OpenGLFrame
 
+
 class UI():
     def __init__(self):
-        self.shader_program = None
         self.vao = None
-
-    # Function to load shader source
-    def load_shader_source(self, file_path):
-        with open(file_path, 'r') as file:
-            return file.read()
-        
-    # Function to compile a shader
-    def compile_shader(self, shader_type, source):
-        shader = gl.glCreateShader(shader_type)
-        gl.glShaderSource(shader, source)
-        gl.glCompileShader(shader)
-
-        # Check for errors
-        if not gl.glGetShaderiv(shader, gl.GL_COMPILE_STATUS):
-            error = gl.glGetShaderInfoLog(shader)
-            raise RuntimeError(f"Shader compilation failed: {error.decode()}")
-
-        return shader
 
     def main(self):
         null_ptr = ctypes.c_void_p
@@ -46,16 +29,7 @@ class UI():
 
         # BUILDING THE SHADER
         # compile shaders
-        vertex_shader = self.compile_shader(gl.GL_VERTEX_SHADER, self.load_shader_source("vertex_shader.glsl"))
-        fragment_shader = self.compile_shader(gl.GL_FRAGMENT_SHADER, self.load_shader_source("fragment_shader.glsl"))
-        # shader program
-        self.shader_program = gl.glCreateProgram()
-        gl.glAttachShader(self.shader_program, vertex_shader)
-        gl.glAttachShader(self.shader_program, fragment_shader)
-        gl.glLinkProgram(self.shader_program)
-        # cleanup
-        gl.glDeleteShader(vertex_shader)
-        gl.glDeleteShader(fragment_shader)
+        proj_shader = shader.Shader("vertex_shader.glsl", "fragment_shader.glsl")
 
         # triangle data
         vertices = np.array([
@@ -85,10 +59,12 @@ class UI():
                 glfw.set_window_should_close(window,True)
 
             # rendering
+            proj_shader.use()
+            proj_shader.set_float("someUniform", 1.0)
+
             gl.glClearColor(0.2, 0.3, 0.3, 1.0)
             gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-            gl.glUseProgram(self.shader_program)
             gl.glBindVertexArray(self.vao)
             gl.glDrawArrays(gl.GL_TRIANGLES, 0, 3)
 
