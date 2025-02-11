@@ -32,13 +32,11 @@ class Sensor:
     
     # Retrieves terrain height at the given coordinates
     def get_elevation_at_position(self, x, y):
-        row, col = transformations.xy_to_rowcol(x, y, ~self.affine_transform)
-
-        if 0 <= row < self.elevation_map.shape[0] and 0 <= col < self.elevation_map.shape[1]: # check index out of bounds
-            elevation = self.elevation_map[row, col]
+        if 0 <= y < self.elevation_map.shape[0] and 0 <= x < self.elevation_map.shape[1]: # check index out of bounds
+            elevation = self.elevation_map[y, x]
 
             if elevation == 0.0: # if invalid, handle error
-                return self.estimate_missing_elevation(row, col)
+                return self.estimate_missing_elevation(y, x)
             
             return self.validate_elevation(elevation)
         
@@ -47,8 +45,9 @@ class Sensor:
 
     # Estimate invalid data (0.0) by taking mean of neighbors
     def estimate_missing_elevation(self, row, col):
+        neighbors = self.get_neighbors(row, col)
         valid_elevations = [self.validate_elevation(self.elevation_map[nr, nc])
-                            for nr, nc in Sensor.get_neighbors
+                            for nr, nc in neighbors
                             if 0 <= nr < self.elevation_map.shape[0] and 
                             0 <= nc < self.elevation_map.shape[1] and 
                             self.elevation_map[nr, nc] != 0.0
@@ -56,7 +55,7 @@ class Sensor:
         if valid_elevations:
             return np.mean(valid_elevations)
     
-        return self.MIN_ELEVATION # to default to lowest possible elevation ASK
+        return self.MIN_ELEVATION 
 
 
     # check if movement between two neighbors is possible based on elevation
