@@ -3,7 +3,7 @@ import os
 import rasterio
 import transformations
 from PathFinder import PathFinder
-
+from sensors import Sensor
 @zope.interface.implementer(PathFinder)
 class PathFinderBase:
     """A base class providing default implementations for pathfinding algorithms"""
@@ -11,13 +11,15 @@ class PathFinderBase:
         # Load the map once during initialization
         if not test_mode:
             self.test_mode = test_mode
-            elevation_map, transformer = self._load_map()
+            elevation_map, transformer, affine_transform = self._load_map()
             self.elevation_map = elevation_map
             self.reverse_transformer = transformer
+            self.sensor = Sensor(elevation_map, affine_transform)
         else:
             self.test_mode = test_mode
             self.elevation_map = test_map
             self.reverse_transformer = None
+            self.sensor = Sensor(test_map, None)
             self.affine_transform = None
     
     def _load_map(self):
@@ -38,13 +40,14 @@ class PathFinderBase:
     def _reconstruct_path(self, hist, curr):
         path = [curr]
         while curr in hist:
+            
             curr = hist[curr]
             path.append(curr)
         return path[::-1]  # More efficient than reverse()
     
     def get_neighbors(self,r,c):
         """Default implementation"""
-        neighbors = []
+        """neighbors = []
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1,1), (-1,1), (-1,-1), (1,-1)]:
             nx, ny = r + dx, c + dy
             if 0 <= ny < self.elevation_map.shape[0] and 0 <= nx < self.elevation_map.shape[1]:
@@ -53,11 +56,13 @@ class PathFinderBase:
         #print(f"Current Node: ({r}, {c})")
         #print(f"Neighbors: {neighbors}")
 
-        return neighbors
+        return neighbors"""
+        
+        return self.sensor.get_neighbors(r,c)
     
     def get_cost(self,x1,y1,x2,y2):
         """Default Implementation"""
-        curr = self.elevation_map[x1,y1]
+        """curr = self.elevation_map[x1,y1]
         next = self.elevation_map[x2,y2]
         
         #valid elevation check (no 0.0)
@@ -78,7 +83,8 @@ class PathFinderBase:
         # Add base movement cost (distance)
         diagonal = x1 != x2 and y1 != y2
         base_cost = 1.4142 if diagonal else 1.0  # √2 for diagonal movement
-        return base_cost + elevation_diff
+        return base_cost + elevation_diff"""
+        return self.sensor.get_cost(x1,y1,x2,y2)
     
     def GeoCoord2RowCol(self,start,goal):
         #convert lat/long to row/col

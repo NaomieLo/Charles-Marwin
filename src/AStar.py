@@ -45,5 +45,3 @@ class AStar(PathFinderBase):
                     f_score[neighbor] = tentative_g_score + heuristic(neighbor_x, neighbor_y, end_row, end_col)
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
         return None  # No path found
-
-
