@@ -28,7 +28,7 @@ class sensorTest(unittest.TestCase):
         self.sensor = Sensor(self.mock_elevation_map, self.affine_transform)
 
     def test_get_elevation_at_position(self):
-        self.assertEqual(self.sensor.get_elevation_at_position(0, 0), 10)
+        self.assertEqual(self.sensor.get_elevation_at_position(0, 0), None)
         self.assertEqual(self.sensor.get_elevation_at_position(1, 1), 22000)
         self.assertEqual(self.sensor.get_elevation_at_position(4, 4), 1)
 
@@ -45,12 +45,12 @@ class sensorTest(unittest.TestCase):
 
     def test_is_passable(self): #CHECK: Assuming passable elevation is 100
         """Test if movement between points is correctly validated."""
-        self.assertTrue(self.sensor.is_passable(0, 0, 0, 1))  
+        self.assertTrue(self.sensor.is_passable(3, 3, 4, 4))  
         self.assertFalse(self.sensor.is_passable(1, 1, 2, 2))  
 
     def test_get_cost(self):
         """Test movement cost between two points."""
-        cost = self.sensor.get_cost(0, 0, 0, 1) 
+        cost = self.sensor.get_cost(3, 3, 4, 4) 
         self.assertGreater(cost, 1.0)  # Should be at least base movement cost
 
     def test_get_neighbors(self):

@@ -5,7 +5,7 @@ class Sensor:
     
     MIN_ELEVATION = -8200
     MAX_ELEVATION = 22000
-    robot_passable_elevation = 100
+    PASSABLE_ELEVATION = 100
     
 
     def __init__(self, elevation_map, affine_transform):
@@ -13,11 +13,12 @@ class Sensor:
         self.affine_transform = affine_transform
 
 
-    def get_neighbors(self, r, c): # Yijun's code without error handling
+    def get_neighbors(self, r, c):
         neighbors = []
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1,1), (-1,1), (-1,-1), (1,-1)]:
-            nx, ny = r + dx, c + dy 
-            neighbors.append((nx, ny))
+            nx, ny = r + dx, c + dy
+            if 1 <= ny < self.elevation_map.shape[0] and 1 <= nx < self.elevation_map.shape[1]:
+                neighbors.append((nx, ny))
         return neighbors
     
 
@@ -32,7 +33,7 @@ class Sensor:
     
     # Retrieves terrain height at the given coordinates
     def get_elevation_at_position(self, x, y):
-        if 0 <= y < self.elevation_map.shape[0] and 0 <= x < self.elevation_map.shape[1]: # check index out of bounds
+        if 1 <= y < self.elevation_map.shape[0] and 1 <= x < self.elevation_map.shape[1]: # row and column ranges should start with 1
             elevation = self.elevation_map[y, x]
 
             if elevation == 0.0: # if invalid, handle error
@@ -48,14 +49,12 @@ class Sensor:
         neighbors = self.get_neighbors(row, col)
         valid_elevations = [self.validate_elevation(self.elevation_map[nr, nc])
                             for nr, nc in neighbors
-                            if 0 <= nr < self.elevation_map.shape[0] and 
-                            0 <= nc < self.elevation_map.shape[1] and 
-                            self.elevation_map[nr, nc] != 0.0
+                            if self.elevation_map[nr, nc] != 0.0
                             ]
         if valid_elevations:
             return np.mean(valid_elevations)
     
-        return self.MIN_ELEVATION 
+        return 2100 # default elevation
 
 
     # check if movement between two neighbors is possible based on elevation
@@ -66,7 +65,7 @@ class Sensor:
         if elevation1 is None or elevation2 is None:
             return False # out of bounds 
 
-        return abs(elevation2-elevation1) <= Sensor.robot_passable_elevation
+        return abs(elevation2-elevation1) <= Sensor.PASSABLE_ELEVATION
     
 
     # Uses logic that Yijun used to calculate movement cost between two neighboring coordinates
