@@ -17,7 +17,7 @@ class Sensor:
         neighbors = []
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1,1), (-1,1), (-1,-1), (1,-1)]:
             nx, ny = r + dx, c + dy
-            if 1 <= ny < self.elevation_map.shape[0] and 1 <= nx < self.elevation_map.shape[1]:
+            if 1 <= ny < self.elevation_map.shape[0] and 0 <= nx < self.elevation_map.shape[1]:
                 neighbors.append((nx, ny))
         return neighbors
     
@@ -33,7 +33,7 @@ class Sensor:
     
     # Retrieves terrain height at the given coordinates
     def get_elevation_at_position(self, x, y):
-        if 1 <= y < self.elevation_map.shape[0] and 1 <= x < self.elevation_map.shape[1]: # row and column ranges should start with 1
+        if 1 <= y < self.elevation_map.shape[0] and 0 <= x < self.elevation_map.shape[1]: # row and column ranges should start with 1
             elevation = self.elevation_map[y, x]
 
             if elevation == 0.0: # if invalid, handle error
@@ -59,11 +59,11 @@ class Sensor:
 
     # check if movement between two neighbors is possible based on elevation
     def is_passable(self, x1, y1, x2, y2):
-        elevation1 = self.get_elevation_at_position(x1, y1) # this was 
+        elevation1 = self.get_elevation_at_position(x1, y1) 
         elevation2 = self.get_elevation_at_position(x2, y2)
 
         if elevation1 is None or elevation2 is None:
-            return False # out of bounds 
+            return False # out of bounds case
 
         return abs(elevation2-elevation1) <= Sensor.PASSABLE_ELEVATION
     
