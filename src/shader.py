@@ -1,6 +1,4 @@
 import OpenGL.GL as gl
-import OpenGL.GLU as glu
-import OpenGL.GLUT as glut
 
 class Shader():
     def __init__(self, vertex_path, fragment_path):

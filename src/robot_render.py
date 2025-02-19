@@ -1,9 +1,11 @@
 import shader
+import mesh
 import ctypes
 #import OpenGL.GL as gl
 from OpenGL.GL import *
 import glfw
 import numpy as np
+import pyassimp as assimp
 from PIL import Image
 from pyglm import glm
 
