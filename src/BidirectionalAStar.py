@@ -17,7 +17,7 @@ class BidirectionalAStar(PathFinderBase):
     def heuristic(self, x1, y1, x2, y2):
         return ((x1-x2)**2 + (y1-y2)**2)**0.5
 
-    def find_path(self, start, goal):
+    def find_path(self, start, goal,max_iterations=None):
         start_row, start_col, end_row, end_col = self.GeoCoord2RowCol(start, goal)
         
         # Initialize forward and backward searches

@@ -7,25 +7,41 @@ class AStar(PathFinderBase):
     def __init__(self, test_mode, test_map=None):
         super().__init__(test_mode,test_map=test_map)
         
-    def find_path(self, start, goal):
+    def find_path(self, start, goal, max_iterations=None):
+        """
+        Find a path between start and goal with optional iteration limit
         
-        start_row,start_col,end_row,end_col = self.GeoCoord2RowCol(start,goal)
-        #print(f"Start: ({start_row}, {start_col}) Goal: ({end_row}, {end_col})")
-
-        #heuristic function for A* cost calculation
+        Args:
+        start (tuple): Starting coordinates (row, col)
+        goal (tuple): Goal coordinates (row, col)
+        max_iterations (int, optional): Maximum number of iterations to prevent infinite loops
+        
+        Returns:
+        list: Path from start to goal, or None if no path found
+        """
+        start_row, start_col, end_row, end_col = self.GeoCoord2RowCol(start, goal)
+        
         def heuristic(x1, y1, x2, y2):
-            #fundamentally a distance cost
             return ((x1-x2)**2 + (y1-y2)**2)**0.5
 
         open_set = []
         heapq.heappush(open_set, (0, (start_row, start_col)))
         
-        g_score = {(start_row, start_col): 0}#elevation cost
-        f_score = {(start_row, start_col): heuristic(start_row, start_col, end_row, end_col)}#heuristic cost
+        g_score = {(start_row, start_col): 0}
+        f_score = {(start_row, start_col): heuristic(start_row, start_col, end_row, end_col)}
         
         path_history = {}
-        #A* finding a path
+        
+        # Track iterations
+        iterations = 0
+        
         while open_set:
+            # Check iteration limit if specified
+            if max_iterations is not None:
+                iterations += 1
+                if iterations > max_iterations:
+                    return None
+            
             _, curr = heapq.heappop(open_set)
             
             if curr == (end_row, end_col):
@@ -33,7 +49,7 @@ class AStar(PathFinderBase):
             
             cur_x, cur_y = curr
             neighbors = self.get_neighbors(cur_y, cur_x)
-            #check neighbors
+            
             for neighbor in neighbors:
                 neighbor_x, neighbor_y = neighbor
                 
@@ -44,4 +60,5 @@ class AStar(PathFinderBase):
                     g_score[neighbor] = tentative_g_score  
                     f_score[neighbor] = tentative_g_score + heuristic(neighbor_x, neighbor_y, end_row, end_col)
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
+        
         return None  # No path found
