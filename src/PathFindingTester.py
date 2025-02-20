@@ -61,7 +61,8 @@ class PathFindingTester:
             print("No path found")
         else:
             print("\nMap with returned path (arrows show movement direction, X marks end):")
-            print(self.print_map_with_path(self.mock_elevation_map, path))
+            if(self.visualization):
+                print(self.print_map_with_path(self.mock_elevation_map, path))
     
     def run_Astar_test(self):
         astar = AStar.AStar(True, self.mock_elevation_map)
@@ -72,7 +73,8 @@ class PathFindingTester:
             print("No path found")
         else:
             print("\nMap with returned path (arrows show movement direction, X marks end):")
-            print(self.print_map_with_path(self.mock_elevation_map, path))
+            if(self.visualization):
+                print(self.print_map_with_path(self.mock_elevation_map, path))
 
     def run_BidirectionalAstar_test(self):
         bi_astar = BidirectionalAStar.BidirectionalAStar(True, self.mock_elevation_map)
@@ -83,7 +85,8 @@ class PathFindingTester:
             print("No path found")
         else:
             print("\nMap with returned path (arrows show movement direction, X marks end):")
-            print(self.print_map_with_path(self.mock_elevation_map, path))
+            if(self.visualization):
+                print(self.print_map_with_path(self.mock_elevation_map, path))
     def debug_abstract_graph(self, hpa):
         print("\nAbstract Graph Connections:")
         for node in hpa.abstract_graph:
@@ -94,7 +97,7 @@ class PathFindingTester:
             
     def visualize_real_map(self, path, obj, margin=10):
         """Visualizes a section of the elevation map with the path, start, and goal points."""
-        print(f"Path: {path}")
+        #print(f"Path: {path}")
         print_path_validation_results(path,obj.elevation_map)
         if path is None or len(path) == 0:
             print("❌ No path found! Showing only the map section.")
@@ -158,7 +161,7 @@ class PathFindingTester:
         
     def run_Astar_real_map(self):
         start=(80,70)
-        goal=(80,75)
+        goal=(60,40)
         astar = AStar.AStar(False)
         path = astar.find_path(start, goal)
         
@@ -167,10 +170,11 @@ class PathFindingTester:
             print("No path found")
         else:
             print("\nMap with returned path (arrows show movement direction, X marks end):")
-            print(self.visualize_real_map(path,astar))
+            if(self.visualization):
+                self.visualize_real_map(path,astar)
     def run_biAstar_real_map(self):
         start=(80,70)
-        goal=(80,75)
+        goal=(60,40)
         biastar = BidirectionalAStar.BidirectionalAStar(False)
         path = biastar.find_path(start, goal)
         
@@ -179,11 +183,12 @@ class PathFindingTester:
             print("No path found")
         else:
             print("\nMap with returned path (arrows show movement direction, X marks end):")
-            print(self.visualize_real_map(path,biastar))
+            if(self.visualization):
+                self.visualize_real_map(path,biastar)
             
     def run_resloution_real_map(self):
         start=(80,70)
-        goal=(80,75)
+        goal=(60,40)
         m = MultiResolutionPathFinder.MultiResolutionPathFinder(False)
         path = m.find_path(start, goal)
         
@@ -192,7 +197,8 @@ class PathFindingTester:
             print("No path found")
         else:
             print("\nMap with returned path (arrows show movement direction, X marks end):")
-            print(self.visualize_real_map(path,m))
+            if(self.visualization):
+                self.visualize_real_map(path,m)
             
 def validate_path(path, elevation_map):
     """
@@ -292,7 +298,7 @@ def print_path_validation_results(path, elevation_map):
 
 # Run all tests
 if __name__ == "__main__":
-       
+    
     print("=========== Running A* Test ===========")      
     p = PathFindingTester(True)
     p.run_Astar_test()
@@ -302,13 +308,30 @@ if __name__ == "__main__":
     
     print("\n=========== Running Gaussian Test ===========")
     p.run_resolution_test()
-    #p=PathFindingTester(True)
-    #p.run_AStar_real_map()
     
-    #p=PathFindingTester(True)
-    #p.run_biAStar_real_map()
-    
+    print("\n=========== Running Gaussian Test ===========")
+    start_time=time.time()
     p=PathFindingTester(True)
     p.run_resloution_real_map()
+    end_time=time.time()
+    print("Running time: ",end_time-start_time)
+    
+    print("\n=========== Running Bidirectional A* Test ===========")
+    start_time=time.time()
+    p=PathFindingTester(True)
+    p.run_biAstar_real_map()
+    end_time=time.time()
+    print("Running time: ",end_time-start_time)
+    
+    print("\n=========== Running A* Test ===========")
+    start_time=time.time()
+    p=PathFindingTester(True)
+    p.run_Astar_real_map()
+    end_time=time.time()
+    print("Running time: ",end_time-start_time)
+    
+
+    
+
 
 
