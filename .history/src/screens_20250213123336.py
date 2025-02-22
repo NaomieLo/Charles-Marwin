@@ -1,9 +1,7 @@
 
 import tkinter as tk
 from tkinter import PhotoImage
-from tkinter import font as tkFont
 from PIL import Image, ImageTk
-# import tkextrafont
 
 # ============================================================================
 # A helper class for a simple left/right scroller widget.
@@ -302,11 +300,11 @@ class SpawnScreen(tk.Frame):
         header_x.grid(row=0, column=0, padx=5, pady=5)
         header_y.grid(row=0, column=1, padx=5, pady=5)
         # Dummy coordinate rows.
- 
-        lbl_x = tk.Label(table_frame, text=str(10), font=("Roboto", 14), bg="#D99F6B")
-        lbl_y = tk.Label(table_frame, text=str(20), font=("Roboto", 14), bg="#D99F6B")
-        lbl_x.grid(row=0, column=0, padx=5, pady=5)
-        lbl_y.grid(row=0, column=1, padx=5, pady=5)
+        for i in range(1, 4):
+            lbl_x = tk.Label(table_frame, text=str(i * 10), font=("Roboto", 14), bg="#D99F6B")
+            lbl_y = tk.Label(table_frame, text=str(i * 20), font=("Roboto", 14), bg="#D99F6B")
+            lbl_x.grid(row=i, column=0, padx=5, pady=5)
+            lbl_y.grid(row=i, column=1, padx=5, pady=5)
 
         # "Go" button at the bottom center.
         go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=lambda: controller.show_frame("DummyPage"))
@@ -372,10 +370,10 @@ class FinishScreen(tk.Frame):
 # Metric Display Screen
 class MetricDisplay(tk.Frame):
     def __init__(self, parent, controller):
-        super().__init__(parent, bg="#011936")
+        super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        label = tk.Label(self, text="Metric Display", font=("Orbitron", 24), bg="#011936", fg="white")
+        label = tk.Label(self, text="Metric Display", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
 
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
@@ -385,10 +383,10 @@ class MetricDisplay(tk.Frame):
 # History Screen
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
-        super().__init__(parent, bg="#011936")
+        super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        label = tk.Label(self, text="History", font=("Orbitron", 24), bg="#011936", fg="white")
+        label = tk.Label(self, text="History", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=20)
 
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
@@ -396,21 +394,6 @@ class HistoryScreen(tk.Frame):
 
 # ============================================================================
 # Run the application.
-
-# root = tk.Tk()
-
-# # Register local fonts from a folder
-# tkextrafont.load_font("fonts/Orbitron-Regular.ttf")
-# tkextrafont.load_font("fonts/Roboto_Condensed-BlackItalic.ttf")
-
-# # Now you can create widgets with these font names
-# label = tk.Label(root, text="Hello", font=("Orbitron", 24))
-# label.pack()
-
-# root.mainloop()
-
-
 if __name__ == "__main__":
     app = App()
-    #load_fonts()
     app.mainloop()

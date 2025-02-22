@@ -303,8 +303,8 @@ class SpawnScreen(tk.Frame):
         header_y.grid(row=0, column=1, padx=5, pady=5)
         # Dummy coordinate rows.
  
-        lbl_x = tk.Label(table_frame, text=str(10), font=("Roboto", 14), bg="#D99F6B")
-        lbl_y = tk.Label(table_frame, text=str(20), font=("Roboto", 14), bg="#D99F6B")
+        lbl_x = tk.Label(table_frame, text=str(1 * 10), font=("Roboto", 14), bg="#D99F6B")
+        lbl_y = tk.Label(table_frame, text=str(1 * 20), font=("Roboto", 14), bg="#D99F6B")
         lbl_x.grid(row=0, column=0, padx=5, pady=5)
         lbl_y.grid(row=0, column=1, padx=5, pady=5)
 
