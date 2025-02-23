@@ -1,16 +1,34 @@
 import ctypes
 import numpy as np
+from PIL import Image
 from OpenGL.GL import *
 
 class Mesh:
     def __init__(self, filename):
         # x, y, z, s, t, nx, ny, nz
-        vertices = self.loadMesh(filename)
-        self.vertex_count = len(vertices)//8
+        vertices = self.loadMesh(filename); #print(vertices)
+        self.vertex_count = len(vertices)//5
         vertices = np.array(vertices, dtype=np.float32)
 
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
+
+        # generate & configure texture
+        texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, texture)
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        img = Image.open("container.jpg")
+        img_width = img.width
+        img_height = img.height
+        img_data = img.tobytes()
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
+        glGenerateMipmap
 
         # vertices
         self.vbo = glGenBuffers(1)
@@ -18,10 +36,10 @@ class Mesh:
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
         # position
         glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, ctypes.c_void_p(0))
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(0))
         # texture
         glEnableVertexAttribArray(1)
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 32, ctypes.c_void_p(3 * 4))
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(3 * 4))
     
     def draw(self):
         glBindVertexArray(self.vao)
@@ -50,9 +68,9 @@ class Mesh:
                 elif words[0] == "vt":
                     #texture coord
                     vt.append(self.read_texcoord_data(words))
-                elif words[0] == "vn":
+                #elif words[0] == "vn":
                     #normal
-                    vn.append(self.read_normal_data(words))
+                    #vn.append(self.read_normal_data(words))
                 elif words[0] == "f":
                     #face, three or more vertices in v/vt/vn form
                     self.read_face_data(words, v, vt, vn, vertices)
@@ -92,8 +110,8 @@ class Mesh:
             vertices.append(element)
         for element in vt[int(v_vt_vn[1]) - 1]:
             vertices.append(element)
-        for element in vn[int(v_vt_vn[2]) - 1]:
-            vertices.append(element)
+        #for element in vn[int(v_vt_vn[2]) - 1]:
+            #vertices.append(element)
 
     def destroy(self):
         glDeleteVertexArrays(1, (self.vao,))

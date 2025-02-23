@@ -57,8 +57,8 @@ class UI():
         #cube test
         cube = mesh.Mesh("models/cube.obj")
         model = glm.rotate(glm.mat4(1.0), glm.radians(45.0), glm.vec3(0.5, 0.0, 0.5))
-        view = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, 0.0))
-        projection = glm.perspective(glm.radians(45.0), 600 / 600, 0.1, 100.0)
+        view = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -10.0))
+        projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 100.0)
         #
 
         # ======================= #
