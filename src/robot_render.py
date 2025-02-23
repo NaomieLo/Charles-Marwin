@@ -5,7 +5,6 @@ import ctypes
 from OpenGL.GL import *
 import glfw
 import numpy as np
-import pyassimp as assimp
 from PIL import Image
 from pyglm import glm
 
@@ -34,6 +33,7 @@ class UI():
         glfw.make_context_current(window)
         glViewport(0,0,800,600)
         glEnable(GL_DEPTH_TEST)
+        glClearColor(0.0, 0.0, 0.0, 1.0)
 
         # Compile Shader
         self.shader = shader.Shader("vertex_shader.glsl", "fragment_shader.glsl")
@@ -53,6 +53,12 @@ class UI():
         # NOTICE: If object files do not support vertex indexing, the EBO is unnecessary.
         self.ebo = glGenBuffers(1)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
+
+        #cube test
+        cube = mesh.Mesh("models/cube.obj")
+        model = glm.rotate(glm.mat4(1.0), glm.radians(45.0), glm.vec3(0.5, 0.0, 0.5))
+        view = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, 0.0))
+        projection = glm.perspective(glm.radians(45.0), 600 / 600, 0.1, 100.0)
         #
 
         # ======================= #
@@ -66,6 +72,14 @@ class UI():
             # Render stuff here
             self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
             self.shader.set_float("someUniform", 1.0)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(model))
+            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
+            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+
+            cube.draw()
+
             # events & buffer swap
             glfw.swap_buffers(window)
             glfw.poll_events()

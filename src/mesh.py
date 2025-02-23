@@ -23,6 +23,11 @@ class Mesh:
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 32, ctypes.c_void_p(3 * 4))
     
+    def draw(self):
+        glBindVertexArray(self.vao)
+        glDrawArrays(GL_TRIANGLES, 0, self.vertex_count)
+
+
     def loadMesh(self, filename):
         #reads an obj file
 
@@ -85,9 +90,9 @@ class Mesh:
         v_vt_vn = corner_description.split("/")
         for element in v[int(v_vt_vn[0]) - 1]:
             vertices.append(element)
-        for element in v[int(v_vt_vn[1]) - 1]:
+        for element in vt[int(v_vt_vn[1]) - 1]:
             vertices.append(element)
-        for element in v[int(v_vt_vn[2]) - 1]:
+        for element in vn[int(v_vt_vn[2]) - 1]:
             vertices.append(element)
 
     def destroy(self):
