@@ -107,7 +107,7 @@ class UI():
         img_data = img.tobytes()
 
         gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, img_width, img_height, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, img_data)
-        gl.glGenerateMipmap
+        gl.glGenerateMipmap(gl.GL_TEXTURE_2D)
 
         # vertex buffer & array object
         self.vao = gl.glGenVertexArrays(1)
