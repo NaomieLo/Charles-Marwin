@@ -34,7 +34,7 @@ class Mesh:
         self.materials = None
         self.obj_data = []
         vertices = self.loadMesh(filename); #print(vertices)
-        vertices = np.ravel(np.array(vertices, dtype="object"))
+        vertices = np.ravel(vertices)
 
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
@@ -49,6 +49,7 @@ class Mesh:
             self.textures.append(glGenTextures(1))
             self.tindex[i] = x
             temptex = self.textures[x]
+            glActiveTexture(GL_TEXTURE0 + x)
             glBindTexture(GL_TEXTURE_2D, temptex)
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT)
@@ -74,14 +75,19 @@ class Mesh:
         # texture
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(3 * 4))
+
+        print(vertices)
+        print(self.textures)
+        print(self.obj_data)
     
     def draw(self):
         glBindVertexArray(self.vao)
         offset = 0
         for obj in self.obj_data:
             if obj[0] in self.tindex:
+                glActiveTexture(GL_TEXTURE0 + self.tindex[obj[0]])
                 glBindTexture(GL_TEXTURE_2D, self.textures[self.tindex[obj[0]]])
-            glDrawArrays(GL_TRIANGLES, offset, obj[1])
+                glDrawArrays(GL_TRIANGLES, offset, obj[1])
             offset += obj[1]
 
 
@@ -95,7 +101,7 @@ class Mesh:
         mat = None
         
         #final, complete object
-        vertices = []
+        vertices = np.array([], dtype=np.float32)
 
         #open the obj file and read the data
         with open(filename,'r') as f:
@@ -106,7 +112,7 @@ class Mesh:
                 if words[0] == "o":
                     #new object
                     if len(temp_vertices) > 0: 
-                        vertices.append(np.array(temp_vertices, dtype=np.float32))
+                        vertices = np.concatenate((vertices, np.array(temp_vertices, dtype=np.float32)))
                         self.obj_data.append([mat,len(temp_vertices)//5])
                     temp_vertices = []
                     mat = None
@@ -126,7 +132,7 @@ class Mesh:
                     #material binding to current obj
                     mat = words[1]
                 line = f.readline()
-        vertices.append(np.array(temp_vertices, dtype=np.float32))
+        vertices = np.concatenate((vertices, np.array(temp_vertices, dtype=np.float32)))
         self.obj_data.append([mat,len(temp_vertices)//5])
         return vertices
     
