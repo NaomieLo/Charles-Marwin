@@ -7,6 +7,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.errors import HttpError
 from datetime import time
 
+HISTORY_CSV = os.path.join(BASE_DIR, "history.csv")
+
 SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
 
 sheet_id = "1gtx4iycix_Bxztaj4M0ZfH3afQPs4iIfdQdwKNNYTyc"
@@ -115,17 +117,17 @@ def write_history_to_cloud(sheet_id, input_csv):
 def write_history(data):
     """ method to write data to the cloud history file """
     try:
-        with open("data/history.csv", mode='a', newline='') as file:
+        with open(HISTORY_CSV , mode='a', newline='') as file:
             values = data
             writer = csv.writer(file)
             writer.writerow(values)
-            #file.flush()
+            file.flush()
         print(f"\nSuccessfully logged.\n")
     except Exception as file_error:
         print(f"Failed to write to file: {file_error}")
     
     #Push to db
-    write_history_to_cloud(sheet_id, "data/history.csv")
+    write_history_to_cloud(sheet_id, HISTORY_CSV )
 
 def update_history():
     """ Helper method to sync local history file with cloud history file """
@@ -134,7 +136,7 @@ def update_history():
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
 
-        with open("data/history.csv", mode='r') as file:
+        with open(HISTORY_CSV , mode='r') as file:
             reader = csv.reader(file)
             csv_data = list(reader)
 

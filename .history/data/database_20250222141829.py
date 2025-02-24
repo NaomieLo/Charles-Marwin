@@ -32,7 +32,7 @@ def authenticate():
 
 def read_history():
     """Reads data from the history cloud sheet"""
-    creds = Credentials.from_authorized_user_file("data/token.json", SCOPES)
+    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     try:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
@@ -81,7 +81,7 @@ def input_data(startLocation, endLocation, robot, ai, distance, time, cost):
 
 def write_history_to_cloud(sheet_id, input_csv):
     """Helper method to read data from the local csv file and pushes it to the cloud csv """
-    creds = Credentials.from_authorized_user_file("data/token.json", SCOPES)
+    creds = Credentials.from_authorized_user_file("token.json", SCOPES)
     try:
         #Read data from file
         with open(input_csv, mode='r') as file:
@@ -119,7 +119,7 @@ def write_history(data):
             values = data
             writer = csv.writer(file)
             writer.writerow(values)
-            #file.flush()
+            file.flush()
         print(f"\nSuccessfully logged.\n")
     except Exception as file_error:
         print(f"Failed to write to file: {file_error}")

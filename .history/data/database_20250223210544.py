@@ -7,6 +7,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.errors import HttpError
 from datetime import time
 
+HISTORY_CSV = os.path.join(BASE_DIR, "history.csv")
+
 SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
 
 sheet_id = "1gtx4iycix_Bxztaj4M0ZfH3afQPs4iIfdQdwKNNYTyc"
@@ -119,7 +121,7 @@ def write_history(data):
             values = data
             writer = csv.writer(file)
             writer.writerow(values)
-            #file.flush()
+            file.flush()
         print(f"\nSuccessfully logged.\n")
     except Exception as file_error:
         print(f"Failed to write to file: {file_error}")

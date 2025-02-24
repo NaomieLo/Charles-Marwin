@@ -119,7 +119,7 @@ def write_history(data):
             values = data
             writer = csv.writer(file)
             writer.writerow(values)
-            #file.flush()
+            file.flush()
         print(f"\nSuccessfully logged.\n")
     except Exception as file_error:
         print(f"Failed to write to file: {file_error}")
