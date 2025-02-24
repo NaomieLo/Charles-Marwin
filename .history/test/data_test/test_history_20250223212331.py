@@ -22,8 +22,9 @@ database.HISTORY_CSV = None
 class TestDatabaseFunctions(unittest.TestCase):
     def setUp(self):
         """
-        Creates a temporary directory for token and history file testing, the token file is created in a temp directory, and we also create a
-        temporary CSV file to simulate local history data
+        Creates a temporary directory for token and history file testing.
+        The token file is created in a temp directory, and we also create a
+        temporary CSV file to simulate local history data.
         """
         self.test_dir = tempfile.mkdtemp()
         self.token_path = os.path.join(self.test_dir, "token.json")
@@ -52,7 +53,8 @@ class TestDatabaseFunctions(unittest.TestCase):
     @patch("database.authenticate")
     def test_update_history(self, mock_authenticate, mock_build):
         """
-        Test that update_history() clears the remote sheet and then updates with the local CSV data
+        Test that update_history() clears the remote sheet and then updates it
+        with the local CSV data.
         """
 
         mock_creds = MagicMock()
@@ -86,7 +88,7 @@ class TestDatabaseFunctions(unittest.TestCase):
 
     def test_input_data_valid(self):
         """
-        Test that input_data() returns the correct list of values for valid inputs
+        Test that input_data() returns the correct list of values for valid inputs.
         """
         start = (32, 232)
         end = (4323, 232)
@@ -103,7 +105,7 @@ class TestDatabaseFunctions(unittest.TestCase):
 
     def test_input_data_invalid(self):
         """
-        Test that input_data() raises ValueError for an invalid startLocation
+        Test that input_data() raises ValueError for an invalid startLocation.
         """
         start = ("invalid", 232)
         end = (4323, 232)
@@ -120,7 +122,7 @@ class TestDatabaseFunctions(unittest.TestCase):
     @patch("database.build")
     def test_read_history_with_data(self, mock_build):
         """
-        Test read_history() returns a list of lists when the Sheets API provides data
+        Test read_history() returns a list of lists when the Sheets API provides data.
         """
         mock_service = MagicMock()
         mock_sheet = MagicMock()
@@ -140,17 +142,16 @@ class TestDatabaseFunctions(unittest.TestCase):
     @patch("database.open", new_callable=mock_open, read_data="start,end,robot,ai,distance,time,cost\n")
     def test_write_history(self, mock_file, mock_write_history_to_cloud):
         """
-        Test that write_history() writes data to the local CSV file and calls write_history_to_cloud()
+        Test that write_history() writes data to the local CSV file and calls write_history_to_cloud().
         Since write_history() uses the hard-coded path "data/history.csv", we patch open()
         in the database module to intercept file writes
         """
         data = [(32, 232), (4323, 232), "robot1", "ai1", 120, 60, 1]
         database.write_history(data)
 
-        # Verify that open() was called with "data/history.csv" in append mode
+        # Verify that open() was called with "data/history.csv" in append mode.
         mock_file.assert_called_with("data/history.csv", mode="a", newline="")
-
-        # Verify that write_history_to_cloud() was called with the expected arguments
+        # Verify that write_history_to_cloud() was called with the expected arguments.
         mock_write_history_to_cloud.assert_called_once_with(database.sheet_id, "data/history.csv")
 
 
@@ -159,7 +160,9 @@ class TestDatabaseFunctions(unittest.TestCase):
     def test_update_history(self, mock_build, mock_authenticate):
         """
         Test that update_history() clears the remote sheet and then updates it
-        with the local CSV data
+        with the local CSV data.
+        We patch builtins.open with a custom function to redirect reads from "data/history.csv"
+        to our temporary history file.
         """
         mock_creds = MagicMock()
         mock_authenticate.return_value = mock_creds
@@ -177,12 +180,14 @@ class TestDatabaseFunctions(unittest.TestCase):
         original_open = builtins.open
         def custom_open(file, mode='r', *args, **kwargs):
             if file == "data/history.csv":
+                # Use our temporary history file instead.
                 return original_open(self.history_csv_path, mode, *args, **kwargs)
             return original_open(file, mode, *args, **kwargs)
 
         with patch("builtins.open", side_effect=custom_open):
             database.update_history()
 
+        # Assert that clear() and update() were called on the remote sheet.
         mock_sheet.values.return_value.clear.assert_called_once()
         mock_sheet.values.return_value.update.assert_called_once()
 

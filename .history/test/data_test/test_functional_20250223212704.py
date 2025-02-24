@@ -65,12 +65,15 @@ class TestDatabaseFunctional(unittest.TestCase):
         """
         data = [(5, 6), (7, 8), "robot1", "ai1", 200, 100, 20]
         
+        # Get the initial number of rows.
         with open(database.HISTORY_CSV, "r") as f:
             reader = list(csv.reader(f))
         initial_count = len(reader)
 
+        # Write a new history row.
         database.write_history(data)
 
+        # Read back the CSV file.
         with open(database.HISTORY_CSV, "r") as f:
             reader = list(csv.reader(f))
         self.assertEqual(len(reader), initial_count + 1,

@@ -22,8 +22,9 @@ database.HISTORY_CSV = None
 class TestDatabaseFunctions(unittest.TestCase):
     def setUp(self):
         """
-        Creates a temporary directory for token and history file testing, the token file is created in a temp directory, and we also create a
-        temporary CSV file to simulate local history data
+        Creates a temporary directory for token and history file testing.
+        The token file is created in a temp directory, and we also create a
+        temporary CSV file to simulate local history data.
         """
         self.test_dir = tempfile.mkdtemp()
         self.token_path = os.path.join(self.test_dir, "token.json")

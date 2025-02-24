@@ -57,7 +57,7 @@ class TestDatabasePerformance(unittest.TestCase):
     @patch("database.update_history")
     def test_update_history_performance(self, mock_update_history):
         """
-        Check that updating 1000 rows using update_history() completes in a timely manner
+        Check that updating 1000 rows using update_history() completes in a timely manner.
         """
         # Populate test data
         with open(database.HISTORY_CSV, "a", newline="") as f:

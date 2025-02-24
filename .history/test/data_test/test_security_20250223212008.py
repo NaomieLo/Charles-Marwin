@@ -28,7 +28,7 @@ import database
 class TestDatabaseSecurity(unittest.TestCase):
     def setUp(self):
         """
-        Create temporary files for token and history CSV
+        Create temporary files for token and history CSV.
         """
         self.test_dir = tempfile.mkdtemp()
         self.token_path = os.path.join(self.test_dir, "token.json")
@@ -43,13 +43,13 @@ class TestDatabaseSecurity(unittest.TestCase):
         database.HISTORY_CSV = self.history_csv_path
 
     def tearDown(self):
-        """Remove the temporary directory """
+        """Remove the temporary directory after each test."""
         shutil.rmtree(self.test_dir)
 
     def test_input_data_injection(self):
         """
         Test that input_data() returns the provided malicious strings as plain text,
-        without attempting any execution or transformation
+        without attempting any execution or transformation.
         """
         start = (1, 2)
         end = (3, 4)
@@ -64,7 +64,8 @@ class TestDatabaseSecurity(unittest.TestCase):
 
     def test_token_file_permissions(self):
         """
-        Check that the token file does not have overly permissive permissions this test examines that group/other read permissions are not set
+        Check that the token file does not have overly permissive permissions.
+        This test examines that group/other read permissions are not set
         """
         st_mode = os.stat(self.token_path).st_mode
         # Check that group and others do not have read permissions (mask 0o044).
@@ -72,7 +73,8 @@ class TestDatabaseSecurity(unittest.TestCase):
 
     def test_history_csv_injection_prevention(self):
         """
-        Write a row containing a potential CSV injection payload and verify that the CSV file stores the data exactly as given
+        Write a row containing a potential CSV injection payload and verify that the CSV
+        file stores the data exactly as given.
         """
         data = [(1, 2), (3, 4), "=cmd|' /C calc'!A0", "<script>alert(1)</script>", 100, 50, 10]
         database.write_history(data)

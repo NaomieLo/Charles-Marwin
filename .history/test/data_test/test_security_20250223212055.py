@@ -64,7 +64,8 @@ class TestDatabaseSecurity(unittest.TestCase):
 
     def test_token_file_permissions(self):
         """
-        Check that the token file does not have overly permissive permissions this test examines that group/other read permissions are not set
+        Check that the token file does not have overly permissive permissions
+        This test examines that group/other read permissions are not set
         """
         st_mode = os.stat(self.token_path).st_mode
         # Check that group and others do not have read permissions (mask 0o044).
@@ -72,7 +73,8 @@ class TestDatabaseSecurity(unittest.TestCase):
 
     def test_history_csv_injection_prevention(self):
         """
-        Write a row containing a potential CSV injection payload and verify that the CSV file stores the data exactly as given
+        Write a row containing a potential CSV injection payload and verify that the CSV
+        file stores the data exactly as given
         """
         data = [(1, 2), (3, 4), "=cmd|' /C calc'!A0", "<script>alert(1)</script>", 100, 50, 10]
         database.write_history(data)
