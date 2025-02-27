@@ -350,7 +350,7 @@ class FinishScreen(tk.Frame):
         view_stats_button.grid(row=0, column=1, padx=10, pady=10)
 
 
-# Post run metric Display Screen
+# Histort Display Screen
 class MetricDisplay(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -362,8 +362,8 @@ class MetricDisplay(tk.Frame):
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(pady=20)
 
-
-# History Screen from csv
+# ============================================================================
+# History Screen
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -374,6 +374,21 @@ class HistoryScreen(tk.Frame):
 
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(side="bottom", pady=20)
+
+# ============================================================================
+# Run the application.
+
+# root = tk.Tk()
+
+# # Register local fonts from a folder
+# tkextrafont.load_font("fonts/Orbitron-Regular.ttf")
+# tkextrafont.load_font("fonts/Roboto_Condensed-BlackItalic.ttf")
+
+# # Now you can create widgets with these font names
+# label = tk.Label(root, text="Hello", font=("Orbitron", 24))
+# label.pack()
+
+# root.mainloop()
 
 
 if __name__ == "__main__":

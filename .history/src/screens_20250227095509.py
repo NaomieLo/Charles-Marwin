@@ -222,13 +222,13 @@ class SelectionScreen(tk.Frame):
         top_frame = tk.Frame(self, bg="#D99F6B")
         top_frame.pack(pady=10, fill="x")
 
-        # robot scroller
+        # Scroller for "Select Your Robot"
         scroller1 = Scroller(
             top_frame, "Select Your Robot", items=list(range(1, 7)), bg_color="#D99F6B"
         )
         scroller1.pack(pady=10)
 
-        # pfa scroller
+        # Scroller for "Select Your AI"
         scroller2 = Scroller(
             top_frame, "Select Your AI", items=list(range(1, 7)), bg_color="#D99F6B"
         )
@@ -243,7 +243,7 @@ class SelectionScreen(tk.Frame):
             font=("Roboto", 20),
             command=lambda: controller.show_frame("MainMenuScreen"),
         )
-
+        # Dummy "Next" button now sends us to SpawnScreen.
         btn_next = tk.Button(
             bottom_frame,
             text="Next",
@@ -253,19 +253,22 @@ class SelectionScreen(tk.Frame):
         btn_back.pack(side="left", padx=20)
         btn_next.pack(side="right", padx=20)
 
-# Spawn Screen
+# ============================================================================
+# Spawn Screen (Select Station Location)
 class SpawnScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
+        # Title at the top.
         title_label = tk.Label(self, text="Select Your Station Location", font=("Orbitron", 24), bg="#D99F6B")
         title_label.pack(pady=10)
 
+        # Main content area.
         main_frame = tk.Frame(self, bg="#D99F6B")
         main_frame.pack(fill="both", expand=True, padx=20, pady=10)
 
-        # image of the map
+        # Left: Station image.
         image_frame = tk.Frame(main_frame, bg="#000000")
         image_frame.pack(side="left", fill="both", expand=True, padx=10)
         if controller.station_orig:
@@ -276,21 +279,21 @@ class SpawnScreen(tk.Frame):
         else:
             tk.Label(image_frame, text="Station Image", font=("Orbitron", 20), bg="#000000", fg="white").pack(expand=True)
 
-        # coordinates
+        # Right: Table for X and Y coordinates.
         table_frame = tk.Frame(main_frame, bg="#D99F6B")
         table_frame.pack(side="right", fill="y", padx=10)
         header_x = tk.Label(table_frame, text="X", font=("Roboto", 14), bg="#D99F6B")
         header_y = tk.Label(table_frame, text="Y", font=("Roboto", 14), bg="#D99F6B")
         header_x.grid(row=0, column=0, padx=5, pady=5)
         header_y.grid(row=0, column=1, padx=5, pady=5)
-
+        # Dummy coordinate rows.
  
         lbl_x = tk.Label(table_frame, text=str(10), font=("Roboto", 14), bg="#D99F6B")
         lbl_y = tk.Label(table_frame, text=str(20), font=("Roboto", 14), bg="#D99F6B")
         lbl_x.grid(row=0, column=0, padx=5, pady=5)
         lbl_y.grid(row=0, column=1, padx=5, pady=5)
 
-        # go button
+        # "Go" button at the bottom center.
         go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=lambda: controller.show_frame("DummyPage"))
         go_button.pack(pady=20)
 
@@ -309,8 +312,8 @@ class SpawnScreen(tk.Frame):
             else:
                 self.station_image_id = self.station_canvas.create_image(0, 0, image=self.station_image, anchor="nw")
 
-
-# Dummy Page FOR TERRAIN AND ROBOT
+# ============================================================================
+# Dummy Page (transitional)
 class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
@@ -322,6 +325,7 @@ class DummyPage(tk.Frame):
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
 
+# ============================================================================
 # Finish Screen
 class FinishScreen(tk.Frame):
     def __init__(self, parent, controller):
@@ -349,8 +353,8 @@ class FinishScreen(tk.Frame):
         new_robot_button.grid(row=0, column=0, padx=10, pady=10)
         view_stats_button.grid(row=0, column=1, padx=10, pady=10)
 
-
-# Post run metric Display Screen
+# ============================================================================
+# Metric Display Screen
 class MetricDisplay(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -362,8 +366,8 @@ class MetricDisplay(tk.Frame):
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(pady=20)
 
-
-# History Screen from csv
+# ============================================================================
+# History Screen
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -374,6 +378,21 @@ class HistoryScreen(tk.Frame):
 
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(side="bottom", pady=20)
+
+# ============================================================================
+# Run the application.
+
+# root = tk.Tk()
+
+# # Register local fonts from a folder
+# tkextrafont.load_font("fonts/Orbitron-Regular.ttf")
+# tkextrafont.load_font("fonts/Roboto_Condensed-BlackItalic.ttf")
+
+# # Now you can create widgets with these font names
+# label = tk.Label(root, text="Hello", font=("Orbitron", 24))
+# label.pack()
+
+# root.mainloop()
 
 
 if __name__ == "__main__":

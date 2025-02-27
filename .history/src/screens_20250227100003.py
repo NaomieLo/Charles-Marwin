@@ -376,6 +376,7 @@ class HistoryScreen(tk.Frame):
         back_button.pack(side="bottom", pady=20)
 
 
+
 if __name__ == "__main__":
     app = App()
     #load_fonts()
