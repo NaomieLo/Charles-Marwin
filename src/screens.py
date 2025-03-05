@@ -1,6 +1,7 @@
 import os
 import sys
 import tkinter as tk
+from tkinter import ttk
 from tkinter import PhotoImage
 from tkinter import Entry
 from tkinter import font as tkFont
@@ -53,6 +54,67 @@ class Scroller(tk.Frame):
 
     def update_display(self):
         self.item_label.config(text=str(self.items[self.index]))
+
+class Table(tk.Frame):
+
+    def __init__(self, root, rows, columns, content):
+        super().__init__(root, bg="#011936")
+        self._widgets = []
+        for r in range(rows):
+            current_row = []
+            for c in range(columns):
+                label = tk.Label(self, borderwidth=0, width=10)
+                label.grid(row=r, column=c, sticky="nsew", padx=1, pady=1)
+                current_row.append(label)
+            self._widgets.append(current_row)
+
+        for col in range(columns):
+            self.grid_columnconfigure(col, weight=1)
+
+        self._widgets[0][0].configure(text="Start", font=("Orbitron, 12"))
+        self._widgets[0][1].configure(text="End", font=("Orbitron, 12"))
+        self._widgets[0][2].configure(text="Robot", font=("Orbitron, 12"))
+        self._widgets[0][3].configure(text="AI", font=("Orbitron, 12"))
+        self._widgets[0][4].configure(text="Distance", font=("Orbitron, 12"))
+        self._widgets[0][5].configure(text="Time", font=("Orbitron, 12"))
+        self._widgets[0][6].configure(text="Cost", font=("Orbitron, 12"))
+
+        last_ten = content[(len(content)-11):len(content)]
+
+        i = 10
+
+        for r in range(1,11):
+            for c in range (columns):
+                widget = self._widgets[r][c]
+                widget.configure(text="%s"%(last_ten[i][c]), font=("Orbitron, 12"))
+            i -= 1
+
+class ToggledFrame(tk.Frame):
+
+    def __init__(self, parent, text="", *args, **options):
+        tk.Frame.__init__(self, parent, *args, **options)
+
+        self.show = tk.IntVar()
+        self.show.set(0)
+
+        self.title_frame = ttk.Frame(self)
+        self.title_frame.pack(fill="x", expand=1)
+
+        ttk.Label(self.title_frame, text=text, font=("Orbitron", 20)).pack(side="left", fill="x", expand=1)
+
+        self.toggle_button = ttk.Checkbutton(self.title_frame, width=2, text='+', command=self.toggle,
+                                            variable=self.show, style='Toolbutton')
+        self.toggle_button.pack(side="left")
+
+        self.sub_frame = tk.Frame(self, relief="sunken", borderwidth=1)
+
+    def toggle(self):
+        if bool(self.show.get()):
+            self.sub_frame.pack(fill="x", expand=1)
+            self.toggle_button.configure(text='-')
+        else:
+            self.sub_frame.forget()
+            self.toggle_button.configure(text='+')
 
 # Driver class to connect all the screens
 class App(tk.Tk):
@@ -228,13 +290,15 @@ class SelectionScreen(tk.Frame):
 
         # robot scroller
         scroller1 = Scroller(
-            top_frame, "Select Your Robot", items=list(range(1, 7)), bg_color="#D99F6B"
+            top_frame, "Select Your Robot", items=["Robot 1", "Robot 2", "Robot 3", 
+                                                   "Robot 4", "Robot 5", "Robot 6", "Robot 7"], bg_color="#D99F6B"
         )
         scroller1.pack(pady=10)
 
         # pfa scroller
         scroller2 = Scroller(
-            top_frame, "Select Your AI", items=list(range(1, 7)), bg_color="#D99F6B"
+            top_frame, "Select Your AI", items=["A*", "Bidirectional A*",
+                                                "Multiresolution Pathfinder"], bg_color="#D99F6B"
         )
         scroller2.pack(pady=10)
 
@@ -380,49 +444,40 @@ class HistoryScreen(tk.Frame):
         back_button.pack(side="bottom", pady=20)
 
         history_ls = read_history()
+        last_ten = history_ls[(len(history_ls)-11):len(history_ls)]
+
+        #j = 10
+        for i in range(10):
         
+            t = ToggledFrame(self, text="%s - %s"%(last_ten[10-i][2], last_ten[10-i][3]), relief="raised", borderwidth=1)
+            t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
 
-        t = Table(self, 11, len(history_ls[0]), history_ls)
-        t.pack(side="bottom", pady=80)
+            label = ttk.Label(t.sub_frame, text="Start", font=("Orbitron", 15), borderwidth=0, width=20)
+            label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][0]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
-        
-class Table(tk.Frame):
+            label = ttk.Label(t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20)
+            label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][1]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
 
-    def __init__(self, root, rows, columns, content):
-        super().__init__(root, bg="#011936")
-        self._widgets = []
-        for r in range(rows):
-            current_row = []
-            for c in range(columns):
-                label = tk.Label(self, borderwidth=0, width=10)
-                label.grid(row=r, column=c, sticky="nsew", padx=1, pady=1)
-                current_row.append(label)
-            self._widgets.append(current_row)
+            label = ttk.Label(t.sub_frame, text="Distance", font=("Orbitron", 15), borderwidth=0, width=20)
+            label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][4]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
-        for col in range(columns):
-            self.grid_columnconfigure(col, weight=1)
+            label = ttk.Label(t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20)
+            label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][5]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
-        # for col in range(columns):
-        #     widget = self._widgets[0][col]
-        #     widget.configure(text="%s"%(content[0][col]), font=("Orbitron, 12"))
+            label = ttk.Label(t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20)
+            label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][6]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
-        self._widgets[0][0].configure(text="Start", font=("Orbitron, 12"))
-        self._widgets[0][1].configure(text="End", font=("Orbitron, 12"))
-        self._widgets[0][2].configure(text="Robot", font=("Orbitron, 12"))
-        self._widgets[0][3].configure(text="AI", font=("Orbitron, 12"))
-        self._widgets[0][4].configure(text="Distance", font=("Orbitron, 12"))
-        self._widgets[0][5].configure(text="Time", font=("Orbitron, 12"))
-        self._widgets[0][6].configure(text="Cost", font=("Orbitron, 12"))
-
-        last_ten = content[(len(content)-11):len(content)]
-
-        i = 10
-
-        for r in range(1,11):
-            for c in range (columns):
-                widget = self._widgets[r][c]
-                widget.configure(text="%s"%(last_ten[i][c]), font=("Orbitron, 12"))
-            i -= 1
+            
 
         
         
