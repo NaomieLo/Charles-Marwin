@@ -1,9 +1,13 @@
-
+import os
+import sys
 import tkinter as tk
 from tkinter import PhotoImage
+from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
+from database import *
 
 # SELECT THE ROBOT AND PFA helper
 class Scroller(tk.Frame):
@@ -65,23 +69,23 @@ class App(tk.Tk):
 
         # load background and logo images
         try:
-            self.welcome_bg_orig = Image.open("images/welcome_bg.png")
+            self.welcome_bg_orig = Image.open("src/images/welcome_bg.png")
             self.welcome_bg = ImageTk.PhotoImage(self.welcome_bg_orig)
         except Exception as e:
             self.welcome_bg = None
             self.welcome_bg_orig = None
 
         try:
-            self.logo_img = PhotoImage(file="images/logo.png")
+            self.logo_img = PhotoImage(file="src/images/logo.png")
         except Exception as e:
             self.logo_img = None
         try:
-            self.logo_orig = Image.open("images/logo.png")
+            self.logo_orig = Image.open("src/images/logo.png")
         except Exception as e:
             self.logo_orig = None
 
         try:
-            self.station_orig = Image.open("images/station.png")
+            self.station_orig = Image.open("src/images/station.png")
             self.station_img = ImageTk.PhotoImage(self.station_orig)
         except Exception as e:
             self.station_orig = None
@@ -375,6 +379,53 @@ class HistoryScreen(tk.Frame):
         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(side="bottom", pady=20)
 
+        history_ls = read_history()
+        
+
+        t = Table(self, 11, len(history_ls[0]), history_ls)
+        t.pack(side="bottom", pady=80)
+
+        
+class Table(tk.Frame):
+
+    def __init__(self, root, rows, columns, content):
+        super().__init__(root, bg="#011936")
+        self._widgets = []
+        for r in range(rows):
+            current_row = []
+            for c in range(columns):
+                label = tk.Label(self, borderwidth=0, width=10)
+                label.grid(row=r, column=c, sticky="nsew", padx=1, pady=1)
+                current_row.append(label)
+            self._widgets.append(current_row)
+
+        for col in range(columns):
+            self.grid_columnconfigure(col, weight=1)
+
+        # for col in range(columns):
+        #     widget = self._widgets[0][col]
+        #     widget.configure(text="%s"%(content[0][col]), font=("Orbitron, 12"))
+
+        self._widgets[0][0].configure(text="Start", font=("Orbitron, 12"))
+        self._widgets[0][1].configure(text="End", font=("Orbitron, 12"))
+        self._widgets[0][2].configure(text="Robot", font=("Orbitron, 12"))
+        self._widgets[0][3].configure(text="AI", font=("Orbitron, 12"))
+        self._widgets[0][4].configure(text="Distance", font=("Orbitron, 12"))
+        self._widgets[0][5].configure(text="Time", font=("Orbitron, 12"))
+        self._widgets[0][6].configure(text="Cost", font=("Orbitron, 12"))
+
+        last_ten = content[(len(content)-11):len(content)]
+
+        i = 10
+
+        for r in range(1,11):
+            for c in range (columns):
+                widget = self._widgets[r][c]
+                widget.configure(text="%s"%(last_ten[i][c]), font=("Orbitron, 12"))
+            i -= 1
+
+        
+        
 
 if __name__ == "__main__":
     app = App()
