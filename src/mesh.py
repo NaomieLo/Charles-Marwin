@@ -76,9 +76,9 @@ class Mesh:
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * 4, ctypes.c_void_p(3 * 4))
 
-        print(vertices)
-        print(self.textures)
-        print(self.obj_data)
+        #print(vertices)
+        #print(self.textures)
+        #print(self.obj_data)
     
     def draw(self):
         glBindVertexArray(self.vao)
