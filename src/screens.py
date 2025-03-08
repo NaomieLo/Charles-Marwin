@@ -1,8 +1,12 @@
 
 import tkinter as tk
+import subprocess
+import sys
 from tkinter import PhotoImage
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
+# from pyopengltk import OpenGLFrame
+# import OpenGL.GL as gl
 
 
 # SELECT THE ROBOT AND PFA helper
@@ -316,11 +320,19 @@ class DummyPage(tk.Frame):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
+        label = tk.Label(self, text="Terrain Page", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
+
+        launch_button = tk.Button(self, text="Launch Terrain", font=("Roboto", 20), command=self.launch_terrain)
+        launch_button.pack(pady=20)
 
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
+    def launch_terrain(self):
+        # Get the path to the current Python interpreter
+        python_executable = sys.executable
+        # Launch terrain_opengl.py as a separate process
+        subprocess.Popen([python_executable, "src/terrain_opengl.py"])
 
 # Finish Screen
 class FinishScreen(tk.Frame):
