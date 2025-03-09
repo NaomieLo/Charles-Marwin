@@ -89,6 +89,7 @@ class Mesh:
                 glBindTexture(GL_TEXTURE_2D, self.textures[self.tindex[obj[0]]])
                 glDrawArrays(GL_TRIANGLES, offset, obj[1])
             offset += obj[1]
+        glBindVertexArray(0)
 
 
     def loadMesh(self, filename):
