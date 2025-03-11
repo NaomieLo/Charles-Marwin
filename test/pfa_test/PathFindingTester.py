@@ -164,7 +164,7 @@ class PathFindingTester:
         
     def run_Astar_real_map(self):
         start=(80,70)
-        goal=(60,40)
+        goal=(78,68)
         astar = AStar.AStar(False)
         path = astar.find_path(start, goal)
         
@@ -177,7 +177,7 @@ class PathFindingTester:
                 self.visualize_real_map(path,astar)
     def run_biAstar_real_map(self):
         start=(80,70)
-        goal=(60,40)
+        goal=(80,72)
         biastar = BidirectionalAStar.BidirectionalAStar(False)
         path = biastar.find_path(start, goal)
         
