@@ -2,7 +2,7 @@ import glfw
 import numpy as np
 import pyqtgraph.opengl as gl
 from PyQt5 import QtCore, QtGui, QtWidgets
-import matplotlib.pyplot as plt  # Used for color mapping
+import matplotlib.pyplot as plt  
 from matplotlib.colors import LinearSegmentedColormap
 import pyvista as pv
 import sys
@@ -14,7 +14,6 @@ class Terrain(object):
         self.w.setGeometry(0, 110, 1920, 1080)
         self. w.show()
         self.w.setWindowTitle("Test Terrain")
-        #self.w.setCameraPosition(distance = 30, elevation = 10)
         self.w.setCameraPosition(distance=100, elevation=90, azimuth=0)
 
         grid =gl.GLGridItem()
@@ -23,7 +22,7 @@ class Terrain(object):
 
         self.load_mesh(mesh_file)
 
-
+    # my first method of rendering data
         # self.nstep = 1
         # self.ypoints = range(-20, 22, self.nstep)
         # self.xpoints = range(-20, 22, self.nstep)
@@ -233,12 +232,12 @@ class Terrain(object):
         
         if not has_variation:
             print("⚠ WARNING: Elevation is flat! Adding artificial variation for testing.")
-            verts[:, 2] += np.random.uniform(0, 10, verts.shape[0])  # Add small height differences
+            verts[:, 2] += np.random.uniform(0, 10, verts.shape[0]) 
 
         # Shift elevation so the minimum is at 0
-        verts[:, 2] -= np.min(verts[:, 2])  # Ensures minimum elevation is now 0
+        verts[:, 2] -= np.min(verts[:, 2]) 
 
-        # Normalize elevation values between 0 and 1
+        # Normalize elevation
         elevation_scaled = verts[:, 2] / np.max(verts[:, 2])
 
         # Center terrain around (0,0,0)
@@ -253,22 +252,21 @@ class Terrain(object):
 
         # Apply color mapping
         face_colors = terrain_colors(elevation_scaled[faces].mean(axis=1))[:, :3]
-        face_colors = np.hstack((face_colors, np.ones((face_colors.shape[0], 1))))  # Add alpha
+        face_colors = np.hstack((face_colors, np.ones((face_colors.shape[0], 1)))) 
 
         print(f"Generated Face Colors: {face_colors.shape}")  # Debugging output
 
         # Create and display terrain mesh
         if hasattr(self, 'm1'):
-            self.w.removeItem(self.m1)  # Remove existing mesh before adding a new one
-
+            self.w.removeItem(self.m1)  
         self.m1 = gl.GLMeshItem(
             vertexes=verts,
             faces=faces,
             faceColors=face_colors,
             smooth=False,
-            drawEdges=False  # Hide edges for clean shading
+            drawEdges=False  
         )
-        self.m1.setGLOptions('opaque')  # Ensure it renders properly
+        self.m1.setGLOptions('opaque')  
         self.w.addItem(self.m1)
 
         # Adjust camera to ensure terrain is visible
@@ -279,7 +277,7 @@ class Terrain(object):
     def check_elevation_variation(self, verts):
         """Checks and prints min/max elevation to confirm variation."""
         z_min, z_max = np.min(verts[:, 2]), np.max(verts[:, 2])
-        print(f"🟢 Min Elevation: {z_min}, Max Elevation: {z_max}")
+        print(f" Min Elevation: {z_min}, Max Elevation: {z_max}")
         
         if z_max == z_min:
             print("⚠ WARNING: No elevation variation detected! Terrain might be flat.")
@@ -294,7 +292,7 @@ class Terrain(object):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    file = "data/terrain_mesh_section.vtk"
+    file = "data//mesh_grid/terrain_mesh_section_0_1.vtk"
     t = Terrain(file)
     t.start()
 

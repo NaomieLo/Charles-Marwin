@@ -328,10 +328,9 @@ class DummyPage(tk.Frame):
 
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
+
     def launch_terrain(self):
-        # Get the path to the current Python interpreter
         python_executable = sys.executable
-        # Launch terrain_opengl.py as a separate process
         subprocess.Popen([python_executable, "src/terrain_opengl.py"])
 
 # Finish Screen
