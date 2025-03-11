@@ -52,7 +52,9 @@ class Terrain(object):
         # Center terrain around (0,0,0)
         verts[:, 0] -= np.mean(verts[:, 0])  
         verts[:, 1] -= np.mean(verts[:, 1])  
-        verts[:, 2] -= np.mean(verts[:, 2])  
+        verts[:, 2] -= np.mean(verts[:, 2])
+
+        self.test_num = len(verts)  
 
         # Define improved colormap (light beige → dark brown)
         terrain_colors = LinearSegmentedColormap.from_list(
@@ -74,10 +76,6 @@ class Terrain(object):
         glBindBuffer(GL_ARRAY_BUFFER, self.vbo)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
-        self.ebo = glGenBuffers(1)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-
         # position
         glEnableVertexAttribArray(0)
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * 4, ctypes.c_void_p(0))
@@ -85,26 +83,14 @@ class Terrain(object):
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * 4, ctypes.c_void_p(3 * 4))
 
-        # Create and display terrain mesh
-        # if hasattr(self, 'm1'):
-        #     self.w.removeItem(self.m1)  # Remove existing mesh before adding a new one
-
-        # self.m1 = gl.GLMeshItem(
-        #     vertexes=verts,
-        #     faces=faces,
-        #     faceColors=face_colors,
-        #     smooth=False,
-        #     drawEdges=False  # Hide edges for clean shading
-        # )
-        # self.m1.setGLOptions('opaque')  # Ensure it renders properly
-        # #self.w.addItem(self.m1)
-
-        # # Adjust camera to ensure terrain is visible
-        # #self.w.setCameraPosition(distance=10000, elevation=20, azimuth=30)
+        self.ebo = glGenBuffers(1)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
 
     def draw(self):
         glBindVertexArray(self.vao)
-        glDrawElements(GL_TRIANGLES, self.obj_count, GL_UNSIGNED_INT, 0)
+       # glDrawArrays(GL_TRIANGLES,0,self.test_num)
+        glDrawElements(GL_TRIANGLES, self.obj_count, GL_UNSIGNED_INT, ctypes.c_void_p(0))
         glBindVertexArray(0)
 
     def check_elevation_variation(self, verts):
@@ -123,11 +109,10 @@ class Terrain(object):
     
 
 
-# if __name__ == "__main__":
-#     app = QtWidgets.QApplication(sys.argv)
-#     file = "data/terrain_mesh_section.vtk"
-#     t = Terrain(file)
-    #t.start()
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    file = "data/terrain_mesh_section.vtk"
+    t = Terrain(file)
 
 
 

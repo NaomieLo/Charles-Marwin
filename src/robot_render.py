@@ -24,7 +24,7 @@ class UI():
         self.last_frame = 0.0
     
     def process_input(self, window):
-        cam_speed = 2.5 * self.delta_time
+        cam_speed = 200.5 * self.delta_time
         if (glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
                 glfw.set_window_should_close(window,True)
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
@@ -63,56 +63,56 @@ class UI():
         self.shader2 = shader.Shader("vertex_shader_color.glsl", "fragment_shader_color.glsl")
 
         # Models and views
-        self.cam_pos = glm.vec3(0.0, 0.0, 3.0)
+        self.cam_pos = glm.vec3(0.0, 0.0, 1740.0)
 
-        robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
+        #robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
         terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
 
         #print(terrain.obj_count)
 
-        rmodel = glm.rotate(glm.mat4(1.0), glm.radians(45.0), glm.vec3(1.0, 1.0, 0.0))
-        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(45.0), glm.vec3(1.0, 1.0, 0.0))
-        view = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, -10.0))
+        rmodel = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, 0.0))
+        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(0), glm.vec3(0.0, 1.0, 0.0))
         projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 100.0)
 
         # ======================= #
         #       RENDER LOOP       #
         # ======================= #
         while not (glfw.window_should_close(window)):
-            # Update deltatime
-            current_frame = glfw.get_time()
-            self.delta_time = current_frame - self.last_frame
-            self.last_frame = current_frame
+          # Update deltatime
+          current_frame = glfw.get_time()
+          self.delta_time = current_frame - self.last_frame
+          self.last_frame = current_frame
 
-            # Process input
-            self.process_input(window)
+          # Process input
+          self.process_input(window)
 
-            # Render stuff here
-            self.shader2.use()
-            self.shader.set_float("someUniform", 1.0)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-            glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "model"), 1, False, glm.value_ptr(tmodel))
-            glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "view"), 1, False, glm.value_ptr(view))
-            glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "projection"), 1, False, glm.value_ptr(projection))
-
-            terrain.draw()
-
-            # self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
-            # self.shader.set_float("someUniform", 1.0)
+          #Render stuff here
+          self.shader2.use()
             
-            # #model = glm.rotate(glm.mat4(1.0), glfw.get_time()*glm.radians(10.0), glm.vec3(0.0, 1.0, 0.0))
-            # view = glm.lookAt(self.cam_pos, self.cam_pos + cam_front, cam_up)
+          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+          view = glm.lookAt(self.cam_pos, self.cam_pos + cam_front, cam_up)
 
-            # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
-            # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
-            # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+          glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "model"), 1, False, glm.value_ptr(tmodel))
+          glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "view"), 1, False, glm.value_ptr(view))
+          glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "projection"), 1, False, glm.value_ptr(projection))
 
-            # robot.draw()
+          terrain.draw()
 
-            # events & buffer swap
-            glfw.swap_buffers(window)
-            glfw.poll_events()
+          # self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
+          # self.shader.set_float("someUniform", 1.0)
+          # #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+            
+          # #model = glm.rotate(glm.mat4(1.0), glfw.get_time()*glm.radians(10.0), glm.vec3(0.0, 1.0, 0.0))
+
+          # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
+          # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
+          # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+
+          # robot.draw()
+
+          # events & buffer swap
+          glfw.swap_buffers(window)
+          glfw.poll_events()
 
         glfw.terminate()
 
