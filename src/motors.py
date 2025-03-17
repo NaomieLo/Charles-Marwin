@@ -16,11 +16,6 @@ It assumes a battery bar where there are 'solar panels' on the robot.
     -> 51 - 100: %3  
 -Downhill consumes %0.5 
 
-Functions:
-charging()
-consume_battery()
-
-
 """
 
 class Motors:
