@@ -114,6 +114,8 @@ class Motors:
             self.charge_battery()
             time.sleep(1)       # check every second and charge every 5 seconds in charge_battery()
     
+    def get_battery(self):
+        return max(0, self.battery)
 
     def start_motors(self) -> bool:
         """
@@ -138,7 +140,6 @@ class Motors:
         print(f"Motors started\n")
         return True
     
-
     def stop(self):
         """Stop the motors and mark as stopped for bonus charging"""
         self.is_running = False
