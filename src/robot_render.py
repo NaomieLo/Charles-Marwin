@@ -11,34 +11,64 @@ from PIL import Image
 from pyglm import glm
 
 null_ptr = ctypes.c_void_p
-cam_front = glm.vec3(0.0, 0.0, -1.0)
-cam_up = glm.vec3(0.0, 1.0, 0.0)
 
 class UI():
     def __init__(self):
-        self.shader = None
-        self.shader2 = None
-        self.cam_pos = None
+        self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
 
-        self.delta_time = 0.0
-        self.last_frame = 0.0
+        self.delta_time = 0.0; self.last_frame = 0.0
+
+        self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
+
+        self.robot_forward = glm.vec3(0.0, 0.0, -1.0)
+
+        self.yaw = -90.0; self.pitch = 0.0; self.lastX = 400.0; self.lastY = 300.0; self.first_mouse = True
     
     def process_input(self, window):
-        cam_speed = 200.5 * self.delta_time
+        robot_speed = 2.5 * self.delta_time
         if (glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
-                glfw.set_window_should_close(window,True)
+            glfw.set_window_should_close(window,True)
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
-             self.cam_pos += cam_speed * cam_front
+             self.robot_pos += robot_speed * self.robot_forward
+             self.cam_pos += robot_speed * self.robot_forward
         if (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS):
-             self.cam_pos -= cam_speed * cam_front
+             self.robot_pos -= robot_speed * self.robot_forward
+             self.cam_pos -= robot_speed * self.robot_forward
         if (glfw.get_key(window, glfw.KEY_A) == glfw.PRESS):
-             self.cam_pos -= cam_speed * glm.normalize(glm.cross(cam_front, cam_up))
+             self.robot_ang -= robot_speed * 30.0
         if (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS):
-             self.cam_pos += cam_speed * glm.normalize(glm.cross(cam_front, cam_up))
-        if (glfw.get_key(window, glfw.KEY_SPACE) == glfw.PRESS):
-             self.cam_pos += cam_speed * cam_up
-        if (glfw.get_key(window, glfw.KEY_LEFT_SHIFT) == glfw.PRESS):
-             self.cam_pos -= cam_speed * cam_up
+             self.robot_ang += robot_speed * 30.0
+        
+        direction = glm.vec3(0.0)
+        direction.x = math.sin(glm.radians(self.robot_ang))
+        direction.z = math.cos(glm.radians(self.robot_ang))
+        self.robot_forward = glm.normalize(direction)
+
+    def mouse_callback(self, window, xpos, ypos):
+        if self.first_mouse:
+            self.lastX = xpos; self.lastY = ypos; self.first_mouse = False
+
+        xoffset = xpos - self.lastX
+        yoffset = self.lastY - ypos
+        self.lastX = xpos
+        self.lastY = ypos
+
+        sensitivity = 0.1
+        xoffset *= sensitivity
+        yoffset *= sensitivity
+
+        self.yaw += xoffset
+        self.pitch += yoffset
+
+        if (self.pitch > 89.0): self.pitch = 89.0
+        if (self.pitch < -89.0): self.pitch = -89.0
+
+        direction = glm.vec3(0.0)
+        direction.x = math.cos(glm.radians(self.yaw)) * math.cos(glm.radians(self.pitch))
+        direction.y = math.sin(glm.radians(self.pitch))
+        direction.z = math.sin(glm.radians(self.yaw)) * math.cos(glm.radians(self.pitch))
+        self.cam_front = glm.normalize(direction)
+
     
     def main(self):
         # ======================= #
@@ -57,22 +87,25 @@ class UI():
         glViewport(0,0,800,600)
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.0, 0.0, 0.0, 1.0)
+        glfw.set_cursor_pos_callback(window,self.mouse_callback)
 
         # Compile Shader
         self.shader = shader.Shader("vertex_shader.glsl", "fragment_shader.glsl")
         self.shader2 = shader.Shader("vertex_shader_color.glsl", "fragment_shader_color.glsl")
 
         # Models and views
-        self.cam_pos = glm.vec3(0.0, 0.0, 1740.0)
+        self.cam_pos = glm.vec3(0.0, 2.0, 6.0)
+        self.robot_pos = glm.vec3(0.0, 0.0, 0.0)
+        self.robot_ang = 180.0
 
-        #robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
+        robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
         terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
 
         #print(terrain.obj_count)
 
-        rmodel = glm.translate(glm.mat4(1.0), glm.vec3(0.0, 0.0, 0.0))
-        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(0), glm.vec3(0.0, 1.0, 0.0))
-        projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 100.0)
+        tmodel = glm.translate(glm.rotate(glm.mat4(1.0), glm.radians(90), glm.vec3(1.0, 0.0, 0.0)), glm.vec3(0.0, 1.0, 0.0))
+        tmodel = glm.scale(tmodel, glm.vec3(0.00008, 0.00008, 0.00008))
+        projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
 
         # ======================= #
         #       RENDER LOOP       #
@@ -90,7 +123,8 @@ class UI():
           self.shader2.use()
             
           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-          view = glm.lookAt(self.cam_pos, self.cam_pos + cam_front, cam_up)
+          view = glm.lookAt(self.cam_pos, self.cam_pos+self.cam_front, self.cam_up)
+          #view = glm.rotate(view_pos, glm.radians(45), glm.vec3(1.0, 0.0, 0.0))
 
           glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "model"), 1, False, glm.value_ptr(tmodel))
           glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "view"), 1, False, glm.value_ptr(view))
@@ -98,17 +132,16 @@ class UI():
 
           terrain.draw()
 
-          # self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
-          # self.shader.set_float("someUniform", 1.0)
-          # #glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            
-          # #model = glm.rotate(glm.mat4(1.0), glfw.get_time()*glm.radians(10.0), glm.vec3(0.0, 1.0, 0.0))
+          self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
 
-          # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
-          # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
-          # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+          rmodel = glm.rotate(glm.translate(glm.mat4(1), self.robot_pos), glm.radians(self.robot_ang), glm.vec3(0.0, 1.0, 0.0))
+          rmodel = glm.scale(rmodel, glm.vec3(0.4, 0.4, 0.4))
 
-          # robot.draw()
+          glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
+          glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
+          glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+
+          robot.draw()
 
           # events & buffer swap
           glfw.swap_buffers(window)

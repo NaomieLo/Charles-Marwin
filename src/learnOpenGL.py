@@ -34,8 +34,8 @@ class Terrain(object):
         verts = np.array(mesh.points, dtype=np.float32)
         indices = mesh.faces.reshape(-1, 4)[:, 1:]  # Convert faces to proper format
         self.obj_count = len(indices)
-        indices = np.ravel(indices)
-
+        indices = np.ravel(np.array(indices, dtype=np.uint32))
+    
         # Debugging: Check elevation
         # has_variation = self.check_elevation_variation(verts)
         
@@ -54,8 +54,6 @@ class Terrain(object):
         verts[:, 1] -= np.mean(verts[:, 1])  
         verts[:, 2] -= np.mean(verts[:, 2])
 
-        self.test_num = len(verts)  
-
         # Define improved colormap (light beige → dark brown)
         terrain_colors = LinearSegmentedColormap.from_list(
             "custom_terrain", ["#F4E0C2", "#C07C5A", "#8B4513"], N=256
@@ -67,7 +65,7 @@ class Terrain(object):
 
         # format vertices
         vertices = np.ravel(np.concatenate((verts,colors), axis=1, dtype=np.float32))
-
+    
         # Create buffers
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
@@ -89,7 +87,7 @@ class Terrain(object):
 
     def draw(self):
         glBindVertexArray(self.vao)
-       # glDrawArrays(GL_TRIANGLES,0,self.test_num)
+        # glDrawArrays(GL_TRIANGLES,0,self.test_num)
         glDrawElements(GL_TRIANGLES, self.obj_count, GL_UNSIGNED_INT, ctypes.c_void_p(0))
         glBindVertexArray(0)
 
