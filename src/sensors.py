@@ -80,5 +80,23 @@ class Sensor:
     
         diagonal = x1 != x2 and y1 != y2
         base_cost = 1.4142 if diagonal else 1.0 # √2 for diagonal movement
-
-        return base_cost + elevation_diff
+        
+        battery_cost=0.0
+        battery_weight = 1.0 #adjust this if you want to prioritize the battery cost
+        if elevation_diff < 0:
+            # Downhill: lower battery consumption (e.g., 0.5% cost)
+            battery_cost= 0.5
+        elif 0 <= elevation_diff <= 10:
+            # Flat ground: moderate cost (e.g., 1% battery cost)
+            battery_cost= 1.0
+        elif 10 < elevation_diff <= 50:
+            # Mild uphill: higher cost (e.g., 2.5% battery cost)
+            battery_cost= 2.5
+        elif 50 < elevation_diff <= 100:
+            # Steep uphill: highest cost (e.g., 3% battery cost)
+            battery_cost= 3.0
+        else:
+            # If the elevation change is extreme, make the cost prohibitive.
+            battery_cost= float('inf')
+        
+        return base_cost + elevation_diff + battery_cost*battery_weight
