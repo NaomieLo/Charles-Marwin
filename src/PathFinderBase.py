@@ -4,23 +4,29 @@ import rasterio
 import transformations
 from PathFinder import PathFinder
 from sensors import Sensor
+from motors import Motors
+
 @zope.interface.implementer(PathFinder)
 class PathFinderBase:
     """A base class providing default implementations for pathfinding algorithms"""
     def __init__(self, test_mode, test_map=None):
         # Load the map once during initialization
+        
         if not test_mode:
             self.test_mode = test_mode
             elevation_map, transformer, affine_transform = self._load_map()
             self.elevation_map = elevation_map
             self.reverse_transformer = transformer
             self.sensor = Sensor(elevation_map, affine_transform)
+            
         else:
             self.test_mode = test_mode
             self.elevation_map = test_map
             self.reverse_transformer = None
             self.sensor = Sensor(test_map, None)
             self.affine_transform = None
+            
+            
     
     def _load_map(self):
         """Load the elevation map from a predefined file path."""
@@ -75,6 +81,8 @@ class PathFinderBase:
             start_row, start_col = transformations.xy_to_rowcol(start_x, start_y, ~self.affine_transform)
             end_row, end_col = transformations.xy_to_rowcol(end_x, end_y, ~self.affine_transform)
         return start_row,start_col,end_row,end_col
+    
+    
     
     def find_path(self, start, goal,max_iterations=None):
         """Provide a fallback implementation that can be overridden"""
