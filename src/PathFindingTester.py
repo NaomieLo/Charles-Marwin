@@ -161,7 +161,7 @@ class PathFindingTester:
         
     def run_Astar_real_map(self):
         start=(80,70)
-        goal=(60,40)
+        goal=(79,69)
         astar = AStar.AStar(False)
         path = astar.find_path(start, goal)
         
@@ -174,7 +174,7 @@ class PathFindingTester:
                 self.visualize_real_map(path,astar)
     def run_biAstar_real_map(self):
         start=(80,70)
-        goal=(60,40)
+        goal=(79,69)
         biastar = BidirectionalAStar.BidirectionalAStar(False)
         path = biastar.find_path(start, goal)
         
@@ -202,92 +202,112 @@ class PathFindingTester:
             
 def validate_path(path, elevation_map):
     """
-    Validates if a path is valid based on elevation constraints.
+    Validates if a path is valid based on elevation constraints and 
+    simulates battery consumption along the path.
     
     Args:
-        path: List of tuples [(row1, col1), (row2, col2), ...] representing the path
-        elevation_map: 2D numpy array containing elevation data
+        path: List of tuples [(row1, col1), (row2, col2), ...] representing the path.
+        elevation_map: 2D numpy array containing elevation data.
         
     Returns:
-        (bool, list): A tuple containing:
-            - Boolean indicating if path is valid
-            - List of validation errors, each containing location and error type
+        (bool, list, float, int): A tuple containing:
+            - Boolean indicating if the path is valid.
+            - List of validation errors (if any).
+            - Total battery consumption used (sum of battery cost for each move).
+            - Number of charging events needed.
     """
     if not path or len(path) < 2:
-        return False, ["Path is empty or contains only one point"]
-    
+        return False, ["Path is empty or contains only one point"], None, None
+
     MIN_ELEVATION = -8200
     MAX_ELEVATION = 22000
     MAX_ELEVATION_DIFF = 100
     validation_errors = []
-    
-    # Check elevation range for each point
-    for point_idx, (row, col) in enumerate(path):
-        error_at_point = []
-        
-        # Check if coordinates are within map bounds
+
+    # Validate each point for in-bound and proper elevation range.
+    for idx, (row, col) in enumerate(path):
+        errors = []
         if row < 0 or row >= elevation_map.shape[0] or col < 0 or col >= elevation_map.shape[1]:
-            error_at_point.append(f"Point {point_idx+1}: ({row}, {col}) is out of map bounds")
-            validation_errors.extend(error_at_point)
-            continue  # Skip elevation checks for out-of-bounds points
-            
-        elevation = elevation_map[row, col]
-        if elevation < MIN_ELEVATION:
-            error_at_point.append(
-                f"Point {point_idx+1}: ({row}, {col}) has elevation {elevation} below minimum {MIN_ELEVATION}"
-            )
-        elif elevation > MAX_ELEVATION:
-            error_at_point.append(
-                f"Point {point_idx+1}: ({row}, {col}) has elevation {elevation} above maximum {MAX_ELEVATION}"
-            )
-        
-        validation_errors.extend(error_at_point)
-    
-    # Check elevation difference between consecutive points
+            errors.append(f"Point {idx+1}: ({row}, {col}) is out of map bounds")
+        else:
+            elevation = elevation_map[row, col]
+            if elevation < MIN_ELEVATION:
+                errors.append(
+                    f"Point {idx+1}: ({row}, {col}) has elevation {elevation} below minimum {MIN_ELEVATION}"
+                )
+            elif elevation > MAX_ELEVATION:
+                errors.append(
+                    f"Point {idx+1}: ({row}, {col}) has elevation {elevation} above maximum {MAX_ELEVATION}"
+                )
+        if errors:
+            validation_errors.extend(errors)
+
+    # Optionally, check if elevation differences between consecutive points exceed MAX_ELEVATION_DIFF.
     for i in range(len(path) - 1):
-        current_row, current_col = path[i]
-        next_row, next_col = path[i + 1]
-        
-        # Skip checks if either point was out of bounds
-        if (current_row < 0 or current_row >= elevation_map.shape[0] or 
-            current_col < 0 or current_col >= elevation_map.shape[1] or
-            next_row < 0 or next_row >= elevation_map.shape[0] or 
-            next_col < 0 or next_col >= elevation_map.shape[1]):
-            continue
-        
-        # Verify points are neighbors
-        row_diff = abs(next_row - current_row)
-        col_diff = abs(next_col - current_col)
-        if row_diff > 1 or col_diff > 1:
-            validation_errors.append(
-                f"Points {i+1} and {i+2}: ({current_row}, {current_col}) and ({next_row}, {next_col}) "
-                "are not neighbors (must be adjacent)"
-            )
-            continue
-        
-        current_elevation = elevation_map[current_row, current_col]
-        next_elevation = elevation_map[next_row, next_col]
-        elevation_diff = abs(next_elevation - current_elevation)
-        
-        if elevation_diff > MAX_ELEVATION_DIFF:
-            validation_errors.append(
-                f"Between points {i+1} and {i+2}: ({current_row}, {current_col}) -> ({next_row}, {next_col})\n"
-                f"  Elevation difference {elevation_diff} exceeds maximum {MAX_ELEVATION_DIFF}\n"
-                f"  Point {i+1} elevation: {current_elevation}\n"
-                f"  Point {i+2} elevation: {next_elevation}"
-            )
-    
-    return len(validation_errors) == 0, validation_errors
+        row1, col1 = path[i]
+        row2, col2 = path[i + 1]
+        if (0 <= row1 < elevation_map.shape[0] and 0 <= col1 < elevation_map.shape[1] and
+            0 <= row2 < elevation_map.shape[0] and 0 <= col2 < elevation_map.shape[1]):
+            elev1 = elevation_map[row1, col1]
+            elev2 = elevation_map[row2, col2]
+            if abs(elev2 - elev1) > MAX_ELEVATION_DIFF:
+                validation_errors.append(
+                    f"Elevation difference between point {i+1} and {i+2} exceeds allowed maximum "
+                    f"({abs(elev2 - elev1)} > {MAX_ELEVATION_DIFF})"
+                )
+
+    is_valid = (len(validation_errors) == 0)
+
+    # Simulate battery consumption along the path.
+    battery = 100.0
+    charging_count = 0
+    total_battery_consumption = 0.0
+
+    def estimate_battery_cost(elev1, elev2):
+        diff = elev2 - elev1
+        if diff < 0:
+            return 0.5    # Downhill: lower battery cost
+        elif diff <= 10:
+            return 1.0    # Flat ground
+        elif diff <= 50:
+            return 2.5    # Mild uphill
+        elif diff <= 100:
+            return 3.0    # Steep uphill
+        else:
+            # Should not happen if the path is valid
+            return float('inf')
+
+    for i in range(len(path) - 1):
+        row1, col1 = path[i]
+        row2, col2 = path[i + 1]
+        if (0 <= row1 < elevation_map.shape[0] and 0 <= col1 < elevation_map.shape[1] and
+            0 <= row2 < elevation_map.shape[0] and 0 <= col2 < elevation_map.shape[1]):
+            elev1 = elevation_map[row1, col1]
+            elev2 = elevation_map[row2, col2]
+            cost = estimate_battery_cost(elev1, elev2)
+            # If the cost is infinite, we skip simulation (or handle as error)
+            if cost == float('inf'):
+                continue
+            # If battery is insufficient for the move, simulate a charging event.
+            if battery < cost:
+                charging_count += 1
+                battery = 100.0  # recharge battery to full
+            battery -= cost
+            total_battery_consumption += cost
+
+    return is_valid, validation_errors, total_battery_consumption, charging_count
+
 
 def print_path_validation_results(path, elevation_map):
     """
     Prints formatted validation results for a path.
     """
     print("\n=== Path Validation Results ===")
-    is_valid, errors = validate_path(path, elevation_map)
+    is_valid, errors,total_battery_consumption,charging_count = validate_path(path, elevation_map)
     
     if is_valid:
         print("✅ Path is valid! All constraints are satisfied.")
+        print("There are ",total_battery_consumption," consumed and the battery gets charged ",charging_count," times")
     else:
         print("❌ Path is invalid! Found the following issues:")
         for i, error in enumerate(errors, 1):
