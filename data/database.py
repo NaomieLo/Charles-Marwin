@@ -11,13 +11,13 @@ SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/a
 
 sheet_id = "1gtx4iycix_Bxztaj4M0ZfH3afQPs4iIfdQdwKNNYTyc"
 
-
+TOKEN_PATH = "data/token.json"
 
 def authenticate():
     """Helper function to authenticate users"""
     creds = None
-    if os.path.exists("data/token.json"):
-        creds = Credentials.from_authorized_user_file("data/token.json", SCOPES)
+    if os.path.exists(TOKEN_PATH):
+        creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
@@ -26,13 +26,13 @@ def authenticate():
             creds = flow.run_local_server(port=0, open_browser=False)
 
             #creds = flow.run_local_server(port=0) 
-        with open("data/token.json", "w") as token:
+        with open(TOKEN_PATH, "w") as token:
             token.write(creds.to_json())
     return creds
 
 def read_history():
     """Reads data from the history cloud sheet"""
-    creds = Credentials.from_authorized_user_file("data/token.json", SCOPES)
+    creds = authenticate()
     try:
         service = build('sheets', 'v4', credentials=creds)
         sheet = service.spreadsheets()
@@ -81,7 +81,7 @@ def input_data(startLocation, endLocation, robot, ai, distance, time, cost):
 
 def write_history_to_cloud(sheet_id, input_csv):
     """Helper method to read data from the local csv file and pushes it to the cloud csv """
-    creds = Credentials.from_authorized_user_file("data/token.json", SCOPES)
+    creds = authenticate()
     try:
         #Read data from file
         with open(input_csv, mode='r') as file:
