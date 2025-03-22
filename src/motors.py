@@ -55,11 +55,12 @@ class Motors:
             self.last_action_time = current_time
         
         if self.is_stopped and self.battery < 100.0:
-            old_battery = self.battery
-            self.battery = min(100.0, self.battery * self.BONUS_CHARGING)
-            self.is_stopped = False
-            print(f"Stop charking bonus: {old_battery:.1f}% -> {self.battery:.1f}%\n")
-        
+            while self.battery < 100:       # charge battery until 100 when stopped
+                old_battery = self.battery
+                self.battery = min(100.0, self.battery * self.BONUS_CHARGING)
+                self.is_stopped = False
+                print(f"Stop charking bonus: {old_battery:.1f}% -> {self.battery:.1f}%\n")
+            
 
 
     def consume_battery(self) -> bool: # not completed yet
@@ -114,8 +115,10 @@ class Motors:
             self.charge_battery()
             time.sleep(1)       # check every second and charge every 5 seconds in charge_battery()
     
+
     def get_battery(self):
         return max(0, self.battery)
+
 
     def start_motors(self) -> bool:
         """
