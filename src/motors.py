@@ -1,6 +1,6 @@
 import transformations
 import time
-import sensors
+from sensors import Sensor
 import threading
 from typing import Dict, Any, Optional
 
@@ -19,7 +19,7 @@ It assumes a battery bar where there are 'solar panels' on the robot.
 """
 
 class Motors:
-    DOWNHILL_POWER = 0.995
+    DOWNHILL_POWER = 0.995  # 0.5
     MILD_UPHILL_POWER = 0.975 # in order to consume 100 - 2.5 = 97.5
     STEEP_UPHILL_POWER = 0.97
     FLATGROUND_POWER = 0.99
@@ -37,6 +37,7 @@ class Motors:
         self.is_stopped = True
         self.charging_thread = None
         self.last_action_time = time.time()
+        self.sensor = Sensor(elevation_map, affine_transform)
         
 
     def charge_battery(self):
@@ -74,7 +75,7 @@ class Motors:
             print("ERROR: Battery already depleted!\n")
             return False
 
-        elevation = sensors.Sensor.get_elevation_at_position
+        elevation = self.sensor.get_elevation_at_position
         old_battery = self.battery
         
         # Apply consumption based on elevation
@@ -118,6 +119,26 @@ class Motors:
 
     def get_battery(self):
         return max(0, self.battery)
+    
+
+    def get_next_consumption(self, current_node, next_node):
+        # current_node = [x, y]
+        curr_x, curr_y = current_node[0], current_node[1]
+        next_x, next_y = next_node[0], next_node[1]
+        curr_elevation  = self.sensor.get_elevation_at_positions(self, curr_x, curr_y)
+        next_elevation = self.sensor.get_elevation_at_position(self, next_x, next_y)
+        if self.sensor.is_passable(self, curr_x, curr_y, next_x, next_y):
+            if next_elevation < 0:
+                return 0.5
+            
+            elif 0 <= next_elevation <= 10:
+                return 1.0
+
+            elif 10 < next_elevation <= 50:
+                return 2.5
+
+            elif 50 < next_elevation <= 100:
+                return 3.0
 
 
     def start_motors(self) -> bool:
