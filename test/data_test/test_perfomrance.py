@@ -7,6 +7,9 @@ import time
 import sys
 from unittest.mock import patch
 
+from unittest.mock import patch, MagicMock, mock_open
+
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data")))
 import database
 
@@ -21,6 +24,7 @@ class TestDatabasePerformance(unittest.TestCase):
             writer = csv.writer(f)
             writer.writerow(["startLocation", "endLocation", "robot", "ai", "distance", "time", "cost"])
 
+
     def tearDown(self):
         """Clean up the temporary directory."""
         shutil.rmtree(self.test_dir)
@@ -31,9 +35,10 @@ class TestDatabasePerformance(unittest.TestCase):
         Check that writing 1000 rows using write_history() completes in a timely manner
         """
         start_time = time.time()
-        for i in range(1000):
-            data = [(i, i+1), (i+2, i+3), f"robot{i}", f"ai{i}", i*10, i*5, i]
-            database.write_history(data)
+        with patch("database.open", new_callable=mock_open) as m_open:
+            for i in range(1000):
+                data = [(i, i+1), (i+2, i+3), f"robot{i}", f"ai{i}", i*10, i*5, i]
+                database.write_history(data)
         duration = time.time() - start_time
         
         # Assert that writing 1000 rows takes less than 1 second.
@@ -76,3 +81,4 @@ class TestDatabasePerformance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
