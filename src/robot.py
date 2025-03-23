@@ -6,6 +6,19 @@ from MultiResolutionPathFinder import MultiResolutionPathFinder
 
 
 class Robot:
+    '''
+    Represents the back end of the robot, storing 
+    the necessary information for the correct functioning
+    of the application and the processing of new entries for
+    the database.
+
+    Fields:
+    - Name (str): Name of the robot
+    - Brain (PathFinder): Aggregation of a Pathfinding Algorithm
+    - Path (list): Computed path
+    - initPosition (tuple): Initial spawn coordinates
+    - endPosition (tuple): Destination in the path traversal
+    '''
     
     
     def __init__(self, name:str, brain:str):
@@ -17,8 +30,11 @@ class Robot:
             self.Brain = BidirectionalAStar(None)
         elif (brain == "Multiresolution Pathfinder"):
             self.Brain = MultiResolutionPathFinder(None)
-        
+
         self.Path = []
+        self.initPosition = (0,0)
+        self.endPosition = (0,0)
+
 
         
     def compute_path_cost(self) -> int:
@@ -34,12 +50,7 @@ class Robot:
 
         return cost
     
-if __name__ == "__main__":
-    r = Robot("Crash", "A*")
-    r.Path = [(80,80),(81,80),(82,80),(82,81)]
-    print(r.Name)
-    print(r.Brain)
-    print(r.compute_path_cost())
+
 
         
     

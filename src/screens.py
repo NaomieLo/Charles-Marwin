@@ -6,6 +6,7 @@ from tkinter import PhotoImage
 from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
+from robot import Robot
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
@@ -123,6 +124,7 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
+        self.robot = Robot("Default", "None")
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -312,12 +314,17 @@ class SelectionScreen(tk.Frame):
             command=lambda: controller.show_frame("MainMenuScreen"),
         )
 
+        def make_robot():
+            controller.robot = Robot(scroller1.items[scroller1.index], scroller2.items[scroller2.index])
+            controller.show_frame("SpawnScreen")
+
         btn_next = tk.Button(
             bottom_frame,
             text="Next",
             font=("Roboto", 20),
-            command=lambda: controller.show_frame("SpawnScreen"),
+            command=make_robot,
         )
+
         btn_back.pack(side="left", padx=20)
         btn_next.pack(side="right", padx=20)
 
@@ -444,37 +451,42 @@ class HistoryScreen(tk.Frame):
         back_button.pack(side="bottom", pady=20)
 
         history_ls = read_history()
-        last_ten = history_ls[(len(history_ls)-11):len(history_ls)]
+        last_ten = []
+
+        if (len(history_ls) <= 10):
+            last_ten = history_ls
+        else:
+            last_ten = history_ls[(len(history_ls)-11):len(history_ls)]
 
         #j = 10
-        for i in range(10):
+        for i in range(1,len(last_ten)):
         
-            t = ToggledFrame(self, text="%s - %s"%(last_ten[10-i][2], last_ten[10-i][3]), relief="raised", borderwidth=1)
+            t = ToggledFrame(self, text="%s - %s"%(last_ten[len(last_ten)-i][2], last_ten[len(last_ten)-i][3]), relief="raised", borderwidth=1)
             t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
 
             label = ttk.Label(t.sub_frame, text="Start", font=("Orbitron", 15), borderwidth=0, width=20)
             label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][0]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][0]), font=("Orbitron", 15), borderwidth=0, width=20)
             cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
             label = ttk.Label(t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20)
             label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][1]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][1]), font=("Orbitron", 15), borderwidth=0, width=20)
             cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
 
             label = ttk.Label(t.sub_frame, text="Distance", font=("Orbitron", 15), borderwidth=0, width=20)
             label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][4]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][4]), font=("Orbitron", 15), borderwidth=0, width=20)
             cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
             label = ttk.Label(t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20)
             label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][5]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][5]), font=("Orbitron", 15), borderwidth=0, width=20)
             cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
             label = ttk.Label(t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20)
             label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[10-i][6]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][6]), font=("Orbitron", 15), borderwidth=0, width=20)
             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
             
