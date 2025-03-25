@@ -35,9 +35,9 @@ class UI():
              self.robot_pos -= robot_speed * self.robot_forward
              self.cam_pos -= robot_speed * self.robot_forward
         if (glfw.get_key(window, glfw.KEY_A) == glfw.PRESS):
-             self.robot_ang -= robot_speed * 30.0
-        if (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS):
              self.robot_ang += robot_speed * 30.0
+        if (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS):
+             self.robot_ang -= robot_speed * 30.0
         
         direction = glm.vec3(0.0)
         direction.x = math.sin(glm.radians(self.robot_ang))
