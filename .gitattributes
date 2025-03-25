@@ -1,1 +1,2 @@
 data/MarsMGSMOLA_MAP2_EQUI.tif.zip filter=lfs diff=lfs merge=lfs -text
+data/terrain_mesh_section.vtk filter=lfs diff=lfs merge=lfs -text
