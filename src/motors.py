@@ -64,7 +64,7 @@ class Motors:
             
 
 
-    def consume_battery(self) -> bool: # not completed yet
+    def consume_battery(self, x, y) -> bool: # not completed yet
         """
         Consuming battery according too elevation
          
@@ -75,7 +75,7 @@ class Motors:
             print("ERROR: Battery already depleted!\n")
             return False
 
-        elevation = self.sensor.get_elevation_at_position
+        elevation = self.sensor.get_elevation_at_position(x, y)
         old_battery = self.battery
         
         # Apply consumption based on elevation
