@@ -8,6 +8,8 @@ from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
 from robot_render import UI
+import turtle
+import math
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
@@ -400,9 +402,11 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
-        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
+
+        label = tk.Label(self, text="Detecting Path...", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
 
+        #REMOVE ONCE SIMULATION IS READY
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
     
@@ -482,6 +486,139 @@ class DummyPage(tk.Frame):
             return False
         
 
+
+        # DRAW THE ROVER
+        self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
+        self.canvas.pack(pady=20)
+        
+        self.screen = turtle.TurtleScreen(self.canvas)
+        self.screen.bgcolor("#D99F6B")
+
+        self.rover = turtle.RawTurtle(self.screen)
+        rover_shape = turtle.Shape("compound") 
+        #body
+        body_points = [(-50, -15),(50, -15),(50, 15),(-50, 15)]
+        rover_shape.addcomponent(body_points, "gray", "gray")
+
+        #wheels
+        wheel_radius = 10
+        wheel_y = -20  # Vertical position for wheels
+        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
+        for (cx, cy) in wheel_centers:
+            pts = circle_points(cx, cy, wheel_radius, steps=20)
+            rover_shape.addcomponent(pts, "black", "black")
+        
+        #Top platform
+        top_platform_points = [(-20, 15),( 20, 15),( 20, 30),(-20, 30)]
+        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
+
+        #camera
+        camera_points = [(-3, 30),( 3, 30),( 3, 50),(-3, 50)]
+        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
+        
+        #camera head
+        camera_head = circle_points(0, 55, 5, steps=20)
+        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
+        
+        #antenna
+        antenna = [(30, 15),(34, 15),(35, 45),(30, 45)]
+        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
+        
+        antenna_head = circle_points(32, 50, 4, steps=20)
+        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
+        
+        
+        self.screen.register_shape("rover", rover_shape)
+        
+        # Create the turtle and set its shape to the new "rover" shape
+        self.rover = turtle.RawTurtle(self.screen)
+        self.rover.shape("rover")
+        self.rover.color("black")
+        self.rover.speed(0)  # Fastest for smooth animation
+
+        # Optionally, position or animate the rover as needed
+        self.rover.penup()
+        self.rover.goto(0, 0)
+
+        self.animate_rover()
+
+    def animate_rover(self):
+        """Rotate the rover a little and schedule the next rotation."""
+        self.rover.right(5)  # Rotate by 5 degrees
+        self.after(50, self.animate_rover)  # Reschedule after 50 ms
+
+
+
+
+        # DRAW THE ROVER
+        self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
+        self.canvas.pack(pady=20)
+        
+        self.screen = turtle.TurtleScreen(self.canvas)
+        self.screen.bgcolor("#D99F6B")
+
+        self.rover = turtle.RawTurtle(self.screen)
+        rover_shape = turtle.Shape("compound") 
+        #body
+        body_points = [(-50, -15),(50, -15),(50, 15),(-50, 15)]
+        rover_shape.addcomponent(body_points, "gray", "gray")
+
+        #wheels
+        wheel_radius = 10
+        wheel_y = -20  # Vertical position for wheels
+        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
+        for (cx, cy) in wheel_centers:
+            pts = circle_points(cx, cy, wheel_radius, steps=20)
+            rover_shape.addcomponent(pts, "black", "black")
+        
+        #Top platform
+        top_platform_points = [(-20, 15),( 20, 15),( 20, 30),(-20, 30)]
+        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
+
+        #camera
+        camera_points = [(-3, 30),( 3, 30),( 3, 50),(-3, 50)]
+        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
+        
+        #camera head
+        camera_head = circle_points(0, 55, 5, steps=20)
+        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
+        
+        #antenna
+        antenna = [(30, 15),(34, 15),(35, 45),(30, 45)]
+        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
+        
+        antenna_head = circle_points(32, 50, 4, steps=20)
+        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
+        
+        
+        self.screen.register_shape("rover", rover_shape)
+        
+        # Create the turtle and set its shape to the new "rover" shape
+        self.rover = turtle.RawTurtle(self.screen)
+        self.rover.shape("rover")
+        self.rover.color("black")
+        self.rover.speed(0)  # Fastest for smooth animation
+
+        # Optionally, position or animate the rover as needed
+        self.rover.penup()
+        self.rover.goto(0, 0)
+
+        self.animate_rover()
+
+    def animate_rover(self):
+        """Rotate the rover a little and schedule the next rotation."""
+        self.rover.right(5)  # Rotate by 5 degrees
+        self.after(50, self.animate_rover)  # Reschedule after 50 ms
+
+def circle_points(cx, cy, r, steps=20):
+    pts = []
+    for i in range(steps):
+        angle = 2 * math.pi * i / steps
+        x = cx + r * math.cos(angle)
+        y = cy + r * math.sin(angle)
+        pts.append((x, y))
+    return pts
+
 # Finish Screen
 class FinishScreen(tk.Frame):
     def __init__(self, parent, controller):
@@ -510,16 +647,80 @@ class FinishScreen(tk.Frame):
         view_stats_button.grid(row=0, column=1, padx=10, pady=10)
 
 
-# Post run metric Display Screen
 class MetricDisplay(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
         self.controller = controller
 
+        # Main title
         label = tk.Label(self, text="Metric Display", font=("Orbitron", 24), bg="#011936", fg="white")
-        label.pack(pady=40)
+        label.pack(pady=20)
 
-        back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
+        # Container for the two boxes (centered)
+        container = tk.Frame(self, bg="#011936")
+        container.pack(pady=20, padx=20)
+
+        # Left box - Path visualization (fixed size)
+        path_frame = tk.Frame(container, bg="#A64B00", bd=2, relief=tk.RAISED, width=400, height=400)
+        path_frame.pack(side=tk.LEFT, padx=10)
+        path_frame.pack_propagate(False)  # Prevent frame from resizing to contents
+
+        path_title = tk.Label(path_frame, text="Path", font=("Orbitron", 16), bg="#A64B00", fg="white")
+        path_title.pack(pady=10)
+        
+        path_canvas = tk.Canvas(path_frame, bg="#A64B00", highlightthickness=0, width=360, height=340)
+        path_canvas.pack(pady=10)
+        
+        # Draw a sample path
+        path_canvas.create_line(20, 280, 100, 240, 140, 180, 220, 110, 340, 40, fill="lightyellow", width=2)
+
+        # Add start and end markers
+        path_canvas.create_oval(15, 275, 25, 285, fill="white", outline="white")
+        path_canvas.create_text(45, 290, text="(32, 232)", fill="white", anchor="n")
+
+        # End marker centered at (340, 40)
+        path_canvas.create_oval(335, 35, 345, 45, fill="white", outline="white")
+        path_canvas.create_text(300, 20, text="(4323, 232)", fill="white", anchor="n")
+
+        # Right box - Stats (fixed size to match path frame)
+        stats_frame = tk.Frame(container, bg="#D99F6B", bd=2, relief=tk.RAISED, width=400, height=400)
+        stats_frame.pack(side=tk.RIGHT, padx=10)
+        stats_frame.pack_propagate(False)  # Prevent frame from resizing to contents
+
+        stats_title = tk.Label(stats_frame, text="Stats", font=("Orbitron", 16), bg="#D99F6B", fg="white")
+        stats_title.pack(pady=10)
+
+        # UPDATE WITH STATS FOUND FROM THE PATH 
+        stats_data = [
+            ("Start Location:", "(32, 232)"),
+            ("End Location:", "(4323, 232)"),
+            ("Robot:", "robot1"),
+            ("AI:", "ai1"),
+            ("Distance:", "120"),
+            ("Time:", "60"),
+            ("Cost:", "122")
+        ]
+
+        # Create a frame to center the stats vertically
+        stats_content = tk.Frame(stats_frame, bg="#FFFFFF")
+        stats_content.pack(expand=True)  # This will center vertically in the fixed-height frame
+
+        for label_text, value_text in stats_data:
+            stat_row = tk.Frame(stats_content, bg="#FFFFFF")
+            stat_row.pack(fill=tk.X, padx=10, pady=5)
+            
+            label = tk.Label(stat_row, text=label_text, font=("Orbitron", 16), 
+                            bg="#FFFFFF", fg="black", anchor="w", width=15)
+            label.pack(side=tk.LEFT)
+            
+            value = tk.Label(stat_row, text=value_text, font=("Orbitron", 16, "bold"), 
+                            bg="#FFFFFF", fg="black", anchor="w")
+            value.pack(side=tk.LEFT)
+
+
+        # Back button (centered at bottom)
+        back_button = tk.Button(self, text="Back", font=("Orbitron", 16), 
+                              command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(pady=20)
 
 
