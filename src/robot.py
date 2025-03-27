@@ -2,6 +2,8 @@ import PathFinder
 from AStar import AStar
 from BidirectionalAStar import BidirectionalAStar
 from MultiResolutionPathFinder import MultiResolutionPathFinder
+from motors import Motors
+from sensors import Sensor
 #from PathFinderBase import get_cost
 
 
@@ -16,6 +18,7 @@ class Robot:
     - Name (str): Name of the robot
     - Brain (PathFinder): Aggregation of a Pathfinding Algorithm
     - Path (list): Computed path
+    - Motor (Motot): Aggreagation of Motors
     - initPosition (tuple): Initial spawn coordinates
     - endPosition (tuple): Destination in the path traversal
     '''
@@ -32,6 +35,7 @@ class Robot:
             self.Brain = MultiResolutionPathFinder(None)
 
         self.Path = []
+        self.Motor = Motors(None, None)
         self.initPosition = (0,0)
         self.endPosition = (0,0)
 
