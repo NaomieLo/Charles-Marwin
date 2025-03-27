@@ -103,8 +103,9 @@ class UI():
 
         #print(terrain.obj_count)
 
-        tmodel = glm.translate(glm.rotate(glm.mat4(1.0), glm.radians(90), glm.vec3(1.0, 0.0, 0.0)), glm.vec3(0.0, 1.0, 0.0))
-        tmodel = glm.scale(tmodel, glm.vec3(0.00008, 0.00008, 0.00008))
+        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(90), glm.vec3(1.0, 0.0, 0.0))
+        tmodel = glm.translate(tmodel, glm.vec3(0.0, -300.0, 0.0))
+        tmodel = glm.scale(tmodel, glm.vec3(0.001, 0.001, 0.001))
         projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
 
         # ======================= #
@@ -135,13 +136,15 @@ class UI():
           self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
 
           rmodel = glm.rotate(glm.translate(glm.mat4(1), self.robot_pos), glm.radians(self.robot_ang), glm.vec3(0.0, 1.0, 0.0))
-          rmodel = glm.scale(rmodel, glm.vec3(0.4, 0.4, 0.4))
+          rmodel = glm.scale(rmodel, glm.vec3(0.3, 0.3, 0.3))
 
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
 
           robot.draw()
+
+          print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
 
           # events & buffer swap
           glfw.swap_buffers(window)
