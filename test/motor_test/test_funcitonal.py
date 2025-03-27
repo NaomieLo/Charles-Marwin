@@ -69,6 +69,7 @@ def test_charge_battery():
     sensors.Sensor = DummySensor
     motors = Motors(elevation_map=None, affine_transform=None)
     motors.battery = 80.0
+    motors.is_stopped = False
 
     # Simulate that last action was long enough ago for charging to occur
     motors.last_action_time = time.time() - 6

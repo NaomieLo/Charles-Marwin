@@ -74,7 +74,7 @@ class Motors:
             print("ERROR: Battery already depleted!\n")
             return False
 
-        elevation = sensors.Sensor.get_elevation_at_position
+        elevation = sensors.Sensor.get_elevation_at_position()
         old_battery = self.battery
         
         # Apply consumption based on elevation
