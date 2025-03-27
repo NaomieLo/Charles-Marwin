@@ -12,8 +12,9 @@ import os
 
 
 class Terrain(object):
-    def __init__(self, mesh_file):
+    def __init__(self, mesh_file, highlight_regions=None):
         self.app = QtWidgets.QApplication(sys.argv)
+        self.highlight_regions = highlight_regions or []
         self.load_mesh(mesh_file)
 
 
@@ -49,22 +50,34 @@ class Terrain(object):
         # Shift elevation so the minimum is at 0
         verts[:, 2] -= np.min(verts[:, 2])  # Ensures minimum elevation is now 0
 
-        # Normalize elevation values between 0 and 1
-        elevation_scaled = verts[:, 2] / np.max(verts[:, 2])
-
-        # Center terrain around (0,0,0)
+         # Center terrain around (0,0,0)
         verts[:, 0] -= np.mean(verts[:, 0])  
         verts[:, 1] -= np.mean(verts[:, 1])  
         verts[:, 2] -= np.mean(verts[:, 2])
 
-        # Define improved colormap (light beige → dark brown)
+        # Normalize elevation values between 0 and 1
+        elevation_scaled = verts[:, 2] / np.max(verts[:, 2])
         terrain_colors = LinearSegmentedColormap.from_list(
             "custom_terrain", ["#F4E0C2", "#C07C5A", "#8B4513"], N=256
         )
+        base_colors = terrain_colors(elevation_scaled)[:, :3]
 
-        # Apply color mapping
-        colors = terrain_colors(elevation_scaled)[:, :3]
-        # print(f"Generated Face Colors: {face_colors.shape}")  # Debugging output
+        override_color = np.array([0.4, 0.8, 1.0])  # RGB
+
+        # Override elevation color in specified regions
+        colors = base_colors
+        
+        if self.highlight_regions:
+            for i, (x, y, z) in enumerate(verts):
+                for region in self.highlight_regions:
+                    min_x, min_y, max_x, max_y = region
+                    if min_x <= x <= max_x and min_y <= y <= max_y:
+                        base_colors[i] = override_color
+                        break  # Stop checking more regions once matched
+
+            colors = base_colors
+
+
 
         # format vertices
         vertices = np.ravel(np.concatenate((verts,colors), axis=1, dtype=np.float32))
@@ -87,6 +100,14 @@ class Terrain(object):
         self.ebo = glGenBuffers(1)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+        
+        # Store terrain bounds for external use/debugging
+        self.bounds = mesh.bounds  # (xmin, xmax, ymin, ymax, zmin, zmax)
+
+        print(f" Terrain bounds:")
+        print(f"X: {self.bounds[0]:.2f} to {self.bounds[1]:.2f}")
+        print(f"Y: {self.bounds[2]:.2f} to {self.bounds[3]:.2f}")
+        print(f"Z: {self.bounds[4]:.2f} to {self.bounds[5]:.2f}")
 
     def draw(self):
         glBindVertexArray(self.vao)
@@ -112,8 +133,8 @@ class Terrain(object):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    file = "../data/terrain_mesh_section_3_5_to_5_7.vtk"
-    t = Terrain(file)
+    file = "../data/terrain_mesh_section_3_5_to_5_6.vtk"
+    t = Terrain(file, highlight_regions=None)
 
 
 

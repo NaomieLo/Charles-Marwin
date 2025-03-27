@@ -108,7 +108,11 @@ class UI():
         self.robot_ang = 180.0
 
         robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
-        terrain = terraingen.Terrain("../data/terrain_mesh_section_3_5_to_5_7.vtk")
+        highlight_regions = [(1000000, 5000000, 1100000, 5100000)]
+        terrain = terraingen.Terrain("../data/terrain_mesh_section.vtk", highlight_regions)
+        #terrain = terraingen.Terrain("../data/terrain_mesh_section_3_5_to_5_6.vtk")
+        print("Terrain loaded with bounds:", terrain.bounds)
+
 
         self.battery_bar = BatteryBar()
 
@@ -145,7 +149,7 @@ class UI():
             robot.draw()
 
             # Update and draw battery bar
-            self.battery -= self.delta_time * 0.01
+            self.battery -= self.delta_time * 0.002
             self.battery = max(0.0, self.battery)
             self.battery_bar.fill = self.battery
 
