@@ -16,28 +16,40 @@ class UI():
     def __init__(self):
         self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
 
-        self.delta_time = 0.0; self.last_frame = 0.0
+        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0
 
         self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
 
         self.robot_forward = glm.vec3(0.0, 0.0, -1.0)
 
         self.yaw = -90.0; self.pitch = 0.0; self.lastX = 400.0; self.lastY = 300.0; self.first_mouse = True
+
+    def move_forward(self):
+        self.robot_pos += self.robot_speed * self.robot_forward
+        self.cam_pos += self.robot_speed * self.robot_forward
+
+    def move_backward(self):
+        self.robot_pos -= self.robot_speed * self.robot_forward
+        self.cam_pos -= self.robot_speed * self.robot_forward
+
+    def turn_clockwise(self):
+        self.robot_ang -= self.robot_speed * 30.0
+    
+    def turn_counterclockwise(self):
+        self.robot_ang += self.robot_speed * 30.0
     
     def process_input(self, window):
-        robot_speed = 2.5 * self.delta_time
+        self.robot_speed = 2.5 * self.delta_time
         if (glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
             glfw.set_window_should_close(window,True)
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
-             self.robot_pos += robot_speed * self.robot_forward
-             self.cam_pos += robot_speed * self.robot_forward
+             self.move_forward()
         if (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS):
-             self.robot_pos -= robot_speed * self.robot_forward
-             self.cam_pos -= robot_speed * self.robot_forward
+             self.move_backward()
         if (glfw.get_key(window, glfw.KEY_A) == glfw.PRESS):
-             self.robot_ang += robot_speed * 30.0
+             self.turn_counterclockwise()
         if (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS):
-             self.robot_ang -= robot_speed * 30.0
+             self.turn_clockwise()
         
         direction = glm.vec3(0.0)
         direction.x = math.sin(glm.radians(self.robot_ang))
@@ -144,7 +156,7 @@ class UI():
 
           robot.draw()
 
-          print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
+          #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
 
           # events & buffer swap
           glfw.swap_buffers(window)
