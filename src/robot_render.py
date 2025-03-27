@@ -16,28 +16,40 @@ class UI():
     def __init__(self):
         self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
 
-        self.delta_time = 0.0; self.last_frame = 0.0
+        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0
 
         self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
 
         self.robot_forward = glm.vec3(0.0, 0.0, -1.0)
 
         self.yaw = -90.0; self.pitch = 0.0; self.lastX = 400.0; self.lastY = 300.0; self.first_mouse = True
+
+    def move_forward(self):
+        self.robot_pos += self.robot_speed * self.robot_forward
+        self.cam_pos += self.robot_speed * self.robot_forward
+
+    def move_backward(self):
+        self.robot_pos -= self.robot_speed * self.robot_forward
+        self.cam_pos -= self.robot_speed * self.robot_forward
+
+    def turn_clockwise(self):
+        self.robot_ang -= self.robot_speed * 30.0
+    
+    def turn_counterclockwise(self):
+        self.robot_ang += self.robot_speed * 30.0
     
     def process_input(self, window):
-        robot_speed = 2.5 * self.delta_time
+        self.robot_speed = 2.5 * self.delta_time
         if (glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
             glfw.set_window_should_close(window,True)
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
-             self.robot_pos += robot_speed * self.robot_forward
-             self.cam_pos += robot_speed * self.robot_forward
+             self.move_forward()
         if (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS):
-             self.robot_pos -= robot_speed * self.robot_forward
-             self.cam_pos -= robot_speed * self.robot_forward
+             self.move_backward()
         if (glfw.get_key(window, glfw.KEY_A) == glfw.PRESS):
-             self.robot_ang += robot_speed * 30.0
+             self.turn_counterclockwise()
         if (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS):
-             self.robot_ang -= robot_speed * 30.0
+             self.turn_clockwise()
         
         direction = glm.vec3(0.0)
         direction.x = math.sin(glm.radians(self.robot_ang))
@@ -103,8 +115,9 @@ class UI():
 
         #print(terrain.obj_count)
 
-        tmodel = glm.translate(glm.rotate(glm.mat4(1.0), glm.radians(90), glm.vec3(1.0, 0.0, 0.0)), glm.vec3(0.0, 1.0, 0.0))
-        tmodel = glm.scale(tmodel, glm.vec3(0.00008, 0.00008, 0.00008))
+        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(90), glm.vec3(1.0, 0.0, 0.0))
+        tmodel = glm.translate(tmodel, glm.vec3(0.0, -300.0, 0.0))
+        tmodel = glm.scale(tmodel, glm.vec3(0.001, 0.001, 0.001))
         projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
 
         # ======================= #
@@ -135,13 +148,15 @@ class UI():
           self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
 
           rmodel = glm.rotate(glm.translate(glm.mat4(1), self.robot_pos), glm.radians(self.robot_ang), glm.vec3(0.0, 1.0, 0.0))
-          rmodel = glm.scale(rmodel, glm.vec3(0.4, 0.4, 0.4))
+          rmodel = glm.scale(rmodel, glm.vec3(0.3, 0.3, 0.3))
 
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
 
           robot.draw()
+
+          #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
 
           # events & buffer swap
           glfw.swap_buffers(window)
