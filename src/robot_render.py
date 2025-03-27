@@ -24,6 +24,10 @@ class UI():
 
         self.yaw = -90.0; self.pitch = 0.0; self.lastX = 400.0; self.lastY = 300.0; self.first_mouse = True
 
+    def set_pos(self, x, y):
+        self.robot_pos.x = x; self.cam_pos.x = x
+        self.robot_pos.y = y; self.cam_pos.y = y
+
     def move_forward(self):
         self.robot_pos += self.robot_speed * self.robot_forward
         self.cam_pos += self.robot_speed * self.robot_forward
@@ -115,9 +119,9 @@ class UI():
 
         #print(terrain.obj_count)
 
-        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(90), glm.vec3(1.0, 0.0, 0.0))
-        tmodel = glm.translate(tmodel, glm.vec3(0.0, -300.0, 0.0))
-        tmodel = glm.scale(tmodel, glm.vec3(0.001, 0.001, 0.001))
+        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(-90), glm.vec3(1.0, 0.0, 0.0))
+        tmodel = glm.translate(tmodel, glm.vec3(0.0, -0.666376*terrain.y_offset, 50.0))
+        tmodel = glm.scale(tmodel, glm.vec3(1.0, 1.0, 1.0))
         projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
 
         # ======================= #

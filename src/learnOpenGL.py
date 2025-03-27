@@ -50,13 +50,18 @@ class Terrain(object):
         elevation_scaled = verts[:, 2] / np.max(verts[:, 2])
 
         # Center terrain around (0,0,0)
-        verts[:, 0] -= np.mean(verts[:, 0])  
-        verts[:, 1] -= np.mean(verts[:, 1])  
+        verts[:, 0] -= np.min(verts[:, 0])  
+        verts[:, 1] -= np.min(verts[:, 1])  
         verts[:, 2] -= np.mean(verts[:, 2])
+
+        self.y_offset = np.max(verts[:, 1])
+        print(np.max(verts[:, 1]))
+        print(np.mean(verts[:, 1]))
 
         # Define improved colormap (light beige → dark brown)
         terrain_colors = LinearSegmentedColormap.from_list(
-            "custom_terrain", ["#F4E0C2", "#C07C5A", "#8B4513"], N=256
+            "custom_terrain", ["#FFFFFF", "#C07C5A", "#000000"], N=256
+            #"custom_terrain", ["#F4E0C2", "#C07C5A", "#8B4513"], N=256
         )
 
         # Apply color mapping
