@@ -97,7 +97,7 @@ class Terrain(object):
     def check_elevation_variation(self, verts):
         """Checks and prints min/max elevation to confirm variation."""
         z_min, z_max = np.min(verts[:, 2]), np.max(verts[:, 2])
-        print(f"🟢 Min Elevation: {z_min}, Max Elevation: {z_max}")
+        print(f" Min Elevation: {z_min}, Max Elevation: {z_max}")
         
         if z_max == z_min:
             print("⚠ WARNING: No elevation variation detected! Terrain might be flat.")
@@ -112,7 +112,7 @@ class Terrain(object):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    file = "data/terrain_mesh_section.vtk"
+    file = "../data/terrain_mesh_section_3_5_to_5_7.vtk"
     t = Terrain(file)
 
 
