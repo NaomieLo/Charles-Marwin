@@ -1,4 +1,5 @@
 import OpenGL.GL as gl
+import os
 
 class Shader():
     def __init__(self, vertex_path, fragment_path):
@@ -27,7 +28,8 @@ class Shader():
     
     # Function to load shader source
     def load_shader_source(self, file_path):
-        with open(file_path, 'r') as file:
+        abs_path = os.path.join(os.path.dirname(__file__), file_path)
+        with open(abs_path, 'r') as file:
             return file.read()
         
     # Function to compile a shader

@@ -2,16 +2,19 @@ import ctypes
 import numpy as np
 from PIL import Image
 from OpenGL.GL import *
+import os
+
 
 class Material:
     def __init__(self, filename):
         self.mats = self.loadMaterials(filename); #print(self.mats)
 
     def loadMaterials(self, filename):
+        abs_path = os.path.join(os.path.dirname(__file__), filename)
         mats = {}
         flag = ""
 
-        with open(filename, 'r') as f:
+        with open(abs_path, 'r') as f:
             line = f.readline()
             while line:
                 line = line.rstrip('\n')
@@ -57,11 +60,18 @@ class Mesh:
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-            if self.materials.mats[i] != None:
-                img = Image.open(self.materials.mats[i])
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.width, img.height, 0, GL_RGB, GL_UNSIGNED_BYTE, img.tobytes())
-                glGenerateMipmap(GL_TEXTURE_2D)
-                img.close()
+            if self.materials.mats[i] is not None:
+                # Build absolute path to texture
+                tex_filename = self.materials.mats[i]
+                tex_path = os.path.join(os.path.dirname(__file__), tex_filename)
+
+                if os.path.exists(tex_path):
+                    img = Image.open(tex_path)
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.width, img.height, 0, GL_RGB, GL_UNSIGNED_BYTE, img.tobytes())
+                    glGenerateMipmap(GL_TEXTURE_2D)
+                    img.close()
+                else:
+                    print(f"⚠️  Texture file not found: {tex_path}")
             x += 1
         #print(self.tindex)
 
@@ -93,6 +103,7 @@ class Mesh:
 
 
     def loadMesh(self, filename):
+        abs_path = os.path.join(os.path.dirname(__file__), filename)
         #raw, unassembled data
         v = []
         vt = []
@@ -105,7 +116,7 @@ class Mesh:
         vertices = np.array([], dtype=np.float32)
 
         #open the obj file and read the data
-        with open(filename,'r') as f:
+        with open(abs_path,'r') as f:
             line = f.readline()
             while line:
                 line = line.rstrip('\n')

@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt  # Used for color mapping
 from matplotlib.colors import LinearSegmentedColormap
 import pyvista as pv
 import sys
+import os
+
 
 class Terrain(object):
     def __init__(self, mesh_file):
@@ -17,7 +19,8 @@ class Terrain(object):
 
     def load_mesh(self, mesh_file):
         """ Load VTK terrain and apply elevation-based color mapping efficiently """
-        mesh = pv.read(mesh_file)
+        abs_path = os.path.join(os.path.dirname(__file__), mesh_file)
+        mesh = pv.read(abs_path)
 
         # Convert StructuredGrid to PolyData
         if isinstance(mesh, pv.StructuredGrid):
