@@ -7,9 +7,11 @@ from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
+from robot_render import UI
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
+import Exceptions
 
 # SELECT THE ROBOT AND PFA helper
 class Scroller(tk.Frame):
@@ -125,7 +127,7 @@ class App(tk.Tk):
         self.geometry("800x600")
         self.resizable(True, True)
         self.robot = Robot("Default", "None")
-
+        
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
@@ -390,12 +392,77 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
-
+        self.robot_ui=UI()
+        
         label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
 
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
+    
+    def robot_get_path(self,start,end):
+        path= self.controller.robot.brain.find_path(start,end)
+        if path is not None:
+            self.controller.robot.path=path
+        else:
+            raise Exceptions.NoPathFound("Failed to find a path")
+        
+    def move_to_next_pos(self,elevation):
+        try:
+            r,c=self.controller.robot.get_next_pos_in_path
+            self.controller.robot.curr_idx+=1
+            #Move the robot to next position in scene
+            self.robot_ui.set_pos(c,r)
+            self.robot_ui.robot_pos.z=elevation
+        except Exception as e:
+            print(e)
+    
+    def start_robot(self,start,end):
+        '''
+        The main execution loop of the robot is here
+        It finds the path and move the robot
+        It stops and charge the robot when there is no sufficient battery
+        Reture: True->reach end; False->failed to reach end
+        '''
+        try:
+            robot=self.controller.robot
+            #find path
+            self.robot_get_path(start,end)
+            
+            #start engine
+            if robot.Motor.start_motors():
+                #main loop
+                iter = 1# iteration counter for A*
+                while robot.Path[robot.curr_idx] != robot.end:
+                    next = robot.get_next_pos_in_path()#get next position
+                    curr = robot.Path[robot.curr_idx]
+                    
+                    if curr==next:
+                        return True #reach the end
+                    
+                    cur_elevation = robot.Sensor.get_elevation_at_position(curr[1],curr[0])
+                    next_elevation = robot.Sensor.get_elevation_at_position(next[1],next[0])
+                    if robot.Motor.consume_battery(cur_elevation,next_elevation):
+                        #has enough battery
+                        self.move_to_next_pos(next_elevation)
+                    else:
+                        #not sufficient battery
+                        robot.Motor.stop()
+                        robot.Motor.charge_battery()#charge until full
+                            
+                    if (curr != robot.end) and (robot.curr_idx==len(robot.path)-1):
+                        #This part is only for A* since it is toooooo slow on a large map
+                        #the path is a partial path and robot has reach the end of the path
+                        if iter >5:
+                            return False #Failed to reach goal within 5 tries. 50 sec for each try
+                        self.robot_get_path(robot.Path[robot.curr_idx])
+                        iter+=1
+                        robot.curr_idx=0
+                return True
+        except Exception as e:
+            print(e)
+            return False
+        
 
 # Finish Screen
 class FinishScreen(tk.Frame):

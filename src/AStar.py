@@ -1,6 +1,7 @@
 import heapq
 import os
 import transformations
+import time
 from PathFinderBase import PathFinderBase
 
 class AStar(PathFinderBase):
@@ -34,7 +35,7 @@ class AStar(PathFinderBase):
         
         # Track iterations
         iterations = 0
-        
+        start_time=time.time()
         while open_set:
             # Check iteration limit if specified
             if max_iterations is not None:
@@ -60,5 +61,10 @@ class AStar(PathFinderBase):
                     g_score[neighbor] = tentative_g_score  
                     f_score[neighbor] = tentative_g_score + heuristic(neighbor_x, neighbor_y, end_row, end_col)
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
+            
+            end_time=time.time()
+            time_elapsed=end_time-start_time
+            if time_elapsed >= 50.0:
+                return self._reconstruct_path(path_history, curr)#partial path
         
         return None  # No path found
