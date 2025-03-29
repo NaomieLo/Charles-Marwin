@@ -24,6 +24,7 @@ class Robot:
     def __init__(self, name:str, brain:str):
         self.Name = name
         self.Brain = None
+        self.brain_name = brain
         if (brain == "A*"):
             self.Brain = AStar(None)
         elif (brain == "Bidirectional A*"):
