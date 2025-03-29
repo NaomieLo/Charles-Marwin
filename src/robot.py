@@ -42,6 +42,7 @@ class Robot:
             self.Mesh = "src/models/spirit/24883_MER_static.obj"
 
         self.Brain = None
+        self.brain_name = brain
         if (brain == "A*"):
             self.Brain = AStar(None)
         elif (brain == "Bidirectional A*"):

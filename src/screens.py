@@ -39,6 +39,7 @@ class Scroller(tk.Frame):
             width=20,
             height=5,
             bg="white",
+            fg="black",
             relief="solid",
             font=("Roboto", 14),
         )
@@ -162,14 +163,14 @@ class App(tk.Tk):
 
         # store the screens in a dictionary 
         self.frames = {}
-        for F in (WelcomeScreen, MainMenuScreen, SelectionScreen, SpawnScreen, DummyPage, FinishScreen, MetricDisplay, HistoryScreen):
+        for F in (WelcomeScreen, MainMenuScreen, SelectionScreen, SpawnScreen, DummyPage, FinishScreen, HistoryScreen):
             page_name = F.__name__
             if page_name == "WelcomeScreen":
-                frame = F(parent=container, controller=self, bg_image=self.welcome_bg, logo_image=self.logo_img)
+                frame = F(parent=self.container, controller=self, bg_image=self.welcome_bg, logo_image=self.logo_img)
             elif page_name == "MainMenuScreen":
-                frame = F(parent=container, controller=self, logo_image=self.logo_img)
+                frame = F(parent=self.container, controller=self, logo_image=self.logo_img)
             else:
-                frame = F(parent=container, controller=self)
+                frame = F(parent=self.container, controller=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
@@ -177,6 +178,9 @@ class App(tk.Tk):
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
+        if page_name == "MetricDisplay":
+            self.frames["MetricDisplay"] = MetricDisplay(parent=self.container, controller=self)
+            self.frames["MetricDisplay"].grid(row=0, column=0, sticky="nsew")
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -409,7 +413,7 @@ class DummyPage(tk.Frame):
         #REMOVE ONCE SIMULATION IS READY
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
-    
+
     def robot_get_path(self,start,end):
         path= self.controller.robot.Brain.find_path(start,end)
         if path is not None:
@@ -486,6 +490,69 @@ class DummyPage(tk.Frame):
             return False
         
 
+        # DRAW THE ROVER
+        self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
+        self.canvas.pack(pady=20)
+        
+        self.screen = turtle.TurtleScreen(self.canvas)
+        self.screen.bgcolor("#D99F6B")
+
+        self.rover = turtle.RawTurtle(self.screen)
+        rover_shape = turtle.Shape("compound") 
+        #body
+        body_points = [(-50, -15),(50, -15),(50, 15),(-50, 15)]
+        rover_shape.addcomponent(body_points, "gray", "gray")
+
+        #wheels
+        wheel_radius = 10
+        wheel_y = -20  # Vertical position for wheels
+        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
+        for (cx, cy) in wheel_centers:
+            pts = circle_points(cx, cy, wheel_radius, steps=20)
+            rover_shape.addcomponent(pts, "black", "black")
+        
+        #Top platform
+        top_platform_points = [(-20, 15),( 20, 15),( 20, 30),(-20, 30)]
+        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
+
+        #camera
+        camera_points = [(-3, 30),( 3, 30),( 3, 50),(-3, 50)]
+        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
+        
+        #camera head
+        camera_head = circle_points(0, 55, 5, steps=20)
+        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
+        
+        #antenna
+        antenna = [(30, 15),(34, 15),(35, 45),(30, 45)]
+        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
+        
+        antenna_head = circle_points(32, 50, 4, steps=20)
+        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
+        
+        
+        self.screen.register_shape("rover", rover_shape)
+        
+        #set turtle to rover shape
+        self.rover = turtle.RawTurtle(self.screen)
+        self.rover.shape("rover")
+        self.rover.color("black")
+        self.rover.speed(0) 
+
+        self.rover.penup()
+        self.rover.goto(0, 0)
+
+        self.animate_rover()
+
+    def animate_rover(self):
+        """Rotate the rover a little and schedule the next rotation."""
+        self.rover.right(5)  
+        self.after(50, self.animate_rover) 
+
+  
+
+
+
 
         # DRAW THE ROVER
         self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
@@ -530,13 +597,12 @@ class DummyPage(tk.Frame):
         
         self.screen.register_shape("rover", rover_shape)
         
-        # Create the turtle and set its shape to the new "rover" shape
+        #set turtle to rover shape
         self.rover = turtle.RawTurtle(self.screen)
         self.rover.shape("rover")
         self.rover.color("black")
-        self.rover.speed(0)  # Fastest for smooth animation
+        self.rover.speed(0) 
 
-        # Optionally, position or animate the rover as needed
         self.rover.penup()
         self.rover.goto(0, 0)
 
@@ -544,71 +610,10 @@ class DummyPage(tk.Frame):
 
     def animate_rover(self):
         """Rotate the rover a little and schedule the next rotation."""
-        self.rover.right(5)  # Rotate by 5 degrees
-        self.after(50, self.animate_rover)  # Reschedule after 50 ms
+        self.rover.right(5)  
+        self.after(50, self.animate_rover) 
 
-
-
-
-        # DRAW THE ROVER
-        self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
-        self.canvas.pack(pady=20)
-        
-        self.screen = turtle.TurtleScreen(self.canvas)
-        self.screen.bgcolor("#D99F6B")
-
-        self.rover = turtle.RawTurtle(self.screen)
-        rover_shape = turtle.Shape("compound") 
-        #body
-        body_points = [(-50, -15),(50, -15),(50, 15),(-50, 15)]
-        rover_shape.addcomponent(body_points, "gray", "gray")
-
-        #wheels
-        wheel_radius = 10
-        wheel_y = -20  # Vertical position for wheels
-        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
-        for (cx, cy) in wheel_centers:
-            pts = circle_points(cx, cy, wheel_radius, steps=20)
-            rover_shape.addcomponent(pts, "black", "black")
-        
-        #Top platform
-        top_platform_points = [(-20, 15),( 20, 15),( 20, 30),(-20, 30)]
-        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
-
-        #camera
-        camera_points = [(-3, 30),( 3, 30),( 3, 50),(-3, 50)]
-        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
-        
-        #camera head
-        camera_head = circle_points(0, 55, 5, steps=20)
-        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
-        
-        #antenna
-        antenna = [(30, 15),(34, 15),(35, 45),(30, 45)]
-        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
-        
-        antenna_head = circle_points(32, 50, 4, steps=20)
-        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
-        
-        
-        self.screen.register_shape("rover", rover_shape)
-        
-        # Create the turtle and set its shape to the new "rover" shape
-        self.rover = turtle.RawTurtle(self.screen)
-        self.rover.shape("rover")
-        self.rover.color("black")
-        self.rover.speed(0)  # Fastest for smooth animation
-
-        # Optionally, position or animate the rover as needed
-        self.rover.penup()
-        self.rover.goto(0, 0)
-
-        self.animate_rover()
-
-    def animate_rover(self):
-        """Rotate the rover a little and schedule the next rotation."""
-        self.rover.right(5)  # Rotate by 5 degrees
-        self.after(50, self.animate_rover)  # Reschedule after 50 ms
+  
 
 def circle_points(cx, cy, r, steps=20):
     pts = []
@@ -652,18 +657,20 @@ class MetricDisplay(tk.Frame):
         super().__init__(parent, bg="#011936")
         self.controller = controller
 
-        # Main title
+        robot = controller.robot    
+
+        #title
         label = tk.Label(self, text="Metric Display", font=("Orbitron", 24), bg="#011936", fg="white")
         label.pack(pady=20)
 
-        # Container for the two boxes (centered)
+        #container for the 2 boxes
         container = tk.Frame(self, bg="#011936")
         container.pack(pady=20, padx=20)
 
-        # Left box - Path visualization (fixed size)
+        #left = path visualization
         path_frame = tk.Frame(container, bg="#A64B00", bd=2, relief=tk.RAISED, width=400, height=400)
         path_frame.pack(side=tk.LEFT, padx=10)
-        path_frame.pack_propagate(False)  # Prevent frame from resizing to contents
+        path_frame.pack_propagate(False) 
 
         path_title = tk.Label(path_frame, text="Path", font=("Orbitron", 16), bg="#A64B00", fg="white")
         path_title.pack(pady=10)
@@ -671,37 +678,41 @@ class MetricDisplay(tk.Frame):
         path_canvas = tk.Canvas(path_frame, bg="#A64B00", highlightthickness=0, width=360, height=340)
         path_canvas.pack(pady=10)
         
-        # Draw a sample path
+        #sample path ... 
         path_canvas.create_line(20, 280, 100, 240, 140, 180, 220, 110, 340, 40, fill="lightyellow", width=2)
 
-        # Add start and end markers
+        #start + end
         path_canvas.create_oval(15, 275, 25, 285, fill="white", outline="white")
-        path_canvas.create_text(45, 290, text="(32, 232)", fill="white", anchor="n")
+        path_canvas.create_text(45, 290, text=str(robot.initPosition), fill="white", anchor="n")
 
-        # End marker centered at (340, 40)
         path_canvas.create_oval(335, 35, 345, 45, fill="white", outline="white")
-        path_canvas.create_text(300, 20, text="(4323, 232)", fill="white", anchor="n")
+        path_canvas.create_text(300, 20, text=str(robot.endPosition), fill="white", anchor="n")
 
-        # Right box - Stats (fixed size to match path frame)
+        #right = simulation stats
         stats_frame = tk.Frame(container, bg="#D99F6B", bd=2, relief=tk.RAISED, width=400, height=400)
         stats_frame.pack(side=tk.RIGHT, padx=10)
-        stats_frame.pack_propagate(False)  # Prevent frame from resizing to contents
+        stats_frame.pack_propagate(False) 
 
         stats_title = tk.Label(stats_frame, text="Stats", font=("Orbitron", 16), bg="#D99F6B", fg="white")
         stats_title.pack(pady=10)
 
-        # UPDATE WITH STATS FOUND FROM THE PATH 
+        def distance_calc(p1, p2):
+            return math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)
+        
+        distance = distance_calc(robot.initPosition, robot.endPosition)
+        
+        #stats found in path
         stats_data = [
-            ("Start Location:", "(32, 232)"),
-            ("End Location:", "(4323, 232)"),
-            ("Robot:", "robot1"),
-            ("AI:", "ai1"),
-            ("Distance:", "120"),
-            ("Time:", "60"),
-            ("Cost:", "122")
+            ("Start Location:", str(robot.initPosition)),
+            ("End Location:", str(robot.endPosition)),
+            ("Robot:", robot.Name),
+            ("AI:", robot.brain_name),
+            ("Distance:", f"{distance:.2f}"),
+            ("Time:", "UPDATE"),
+            ("Cost:", str(robot.compute_path_cost()))
         ]
 
-        # Create a frame to center the stats vertically
+        #frame for stats
         stats_content = tk.Frame(stats_frame, bg="#FFFFFF")
         stats_content.pack(expand=True)  # This will center vertically in the fixed-height frame
 
@@ -718,7 +729,7 @@ class MetricDisplay(tk.Frame):
             value.pack(side=tk.LEFT)
 
 
-        # Back button (centered at bottom)
+        #back button
         back_button = tk.Button(self, text="Back", font=("Orbitron", 16), 
                               command=lambda: controller.show_frame("MainMenuScreen"))
         back_button.pack(pady=20)
