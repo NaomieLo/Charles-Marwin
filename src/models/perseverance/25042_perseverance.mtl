@@ -9,7 +9,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_03.jpg
+map_Kd src/models/perseverance/mars_2020_03.jpg
 
 newmtl mat1
 Ns 500
@@ -20,7 +20,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_01.jpg
+map_Kd src/models/perseverance/mars_2020_01.jpg
 
 newmtl mat2
 Ns 500
@@ -31,7 +31,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_04.jpg
+map_Kd src/models/perseverance/mars_2020_04.jpg
 
 newmtl mat3
 Ns 350.00002
@@ -42,7 +42,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_02.jpg
+map_Kd src/models/perseverance/mars_2020_02.jpg
 
 newmtl mat4
 Ns 500
@@ -63,7 +63,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_04.jpg
+map_Kd src/models/perseverance/mars_2020_04.jpg
 
 newmtl mat6
 Ns 699.99999
@@ -84,7 +84,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_05.jpg
+map_Kd src/models/perseverance/mars_2020_05.jpg
 
 newmtl mat8
 Ns 722.7273
@@ -126,7 +126,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_04.jpg
+map_Kd src/models/perseverance/mars_2020_04.jpg
 
 newmtl mat12
 Ns 54.5454
@@ -147,7 +147,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_hub.jpg
+map_Kd src/models/perseverance/mars_2020_hub.jpg
 bump mars_2020_hub_n.jpg
 
 newmtl mat14
@@ -169,7 +169,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_05.jpg
+map_Kd src/models/perseverance/mars_2020_05.jpg
 bump mars_2020_05_n.png
 
 newmtl mat16
@@ -202,7 +202,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_05.jpg
+map_Kd src/models/perseverance/mars_2020_05.jpg
 
 newmtl mat19
 Ns 950
@@ -213,7 +213,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/glass.png
+map_Kd src/models/perseverance/glass.png
 
 newmtl mat20
 Ns 995
@@ -234,7 +234,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/clear.png
+map_Kd src/models/perseverance/clear.png
 
 newmtl mat22
 Ns 500
@@ -286,7 +286,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_07_BLACKOUT.jpg
+map_Kd src/models/perseverance/mars_2020_07_BLACKOUT.jpg
 
 newmtl mat27
 Ns 500
@@ -297,7 +297,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_06.jpg
+map_Kd src/models/perseverance/mars_2020_06.jpg
 
 newmtl mat28
 Ns 500
@@ -308,7 +308,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/arm_graphics.jpg
+map_Kd src/models/perseverance/arm_graphics.jpg
 
 newmtl mat29
 Ns 350.00002
@@ -319,7 +319,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_02.jpg
+map_Kd src/models/perseverance/mars_2020_02.jpg
 bump mars_2020_02_n.jpg
 
 newmtl mat30
@@ -331,7 +331,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_05.jpg
+map_Kd src/models/perseverance/mars_2020_05.jpg
 
 newmtl mat31
 Ns 550.00001
@@ -342,7 +342,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_05.jpg
+map_Kd src/models/perseverance/mars_2020_05.jpg
 bump mars_2020_05_n.png
 
 newmtl mat32
@@ -354,7 +354,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_05.jpg
+map_Kd src/models/perseverance/mars_2020_05.jpg
 map_Ns mars_2020_05_r.jpg
 refl mars_2020_05_r.jpg
 
@@ -418,7 +418,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/nameplate.jpg
+map_Kd src/models/perseverance/nameplate.jpg
 
 newmtl mat39
 Ns 500
@@ -429,7 +429,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_01.jpg
+map_Kd src/models/perseverance/mars_2020_01.jpg
 bump mars_2020_01_n.jpg
 
 newmtl mat40
@@ -441,7 +441,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/mars_2020_03.jpg
+map_Kd src/models/perseverance/mars_2020_03.jpg
 
 newmtl mat41
 Ns 550.00001
@@ -462,7 +462,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/blade.jpg
+map_Kd src/models/perseverance/blade.jpg
 
 newmtl mat43
 Ns 750
@@ -473,7 +473,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/perseverance/mars_2020_06.jpg
+map_Kd src/models/perseverance/mars_2020_06.jpg
 bump mars_2020_06_n.jpg
 
 newmtl mat44
@@ -485,7 +485,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/cvoidPlaque.jpg
+map_Kd src/models/perseverance/cvoidPlaque.jpg
 
 newmtl mat45
 Ns 500
@@ -496,7 +496,7 @@ Ke 0 0 0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/perseverance/sample_handling_door.jpg
+map_Kd src/models/perseverance/sample_handling_door.jpg
 
 newmtl mat46
 Ns 250

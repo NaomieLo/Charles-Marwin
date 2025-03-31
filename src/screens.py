@@ -401,9 +401,9 @@ class DummyPage(tk.Frame):
         next_button.pack(pady=20)
     
     def robot_get_path(self,start,end):
-        path= self.controller.robot.brain.find_path(start,end)
+        path= self.controller.robot.Brain.find_path(start,end)
         if path is not None:
-            self.controller.robot.path=path
+            self.controller.robot.Path=path
         else:
             raise Exceptions.NoPathFound("Failed to find a path")
         
@@ -433,7 +433,7 @@ class DummyPage(tk.Frame):
             if robot.Motor.start_motors():
                 #main loop
                 iter = 1# iteration counter for A*
-                while robot.Path[robot.curr_idx] != robot.end:
+                while robot.Path[robot.curr_idx] != robot.endPosition:
                     next = robot.get_next_pos_in_path()#get next position
                     curr = robot.Path[robot.curr_idx]
                     
@@ -450,7 +450,7 @@ class DummyPage(tk.Frame):
                         robot.Motor.stop()
                         robot.Motor.charge_battery()#charge until full
                             
-                    if (curr != robot.end) and (robot.curr_idx==len(robot.path)-1):
+                    if (curr != robot.endPosition) and (robot.curr_idx==len(robot.path)-1):
                         #This part is only for A* since it is toooooo slow on a large map
                         #the path is a partial path and robot has reach the end of the path
                         if iter >5:

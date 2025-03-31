@@ -106,16 +106,16 @@ class UI():
         glfw.set_cursor_pos_callback(window,self.mouse_callback)
 
         # Compile Shader
-        self.shader = shader.Shader("vertex_shader.glsl", "fragment_shader.glsl")
-        self.shader2 = shader.Shader("vertex_shader_color.glsl", "fragment_shader_color.glsl")
+        self.shader = shader.Shader("src/vertex_shader.glsl", "src/fragment_shader.glsl")
+        self.shader2 = shader.Shader("src/vertex_shader_color.glsl", "src/fragment_shader_color.glsl")
 
         # Models and views
         self.cam_pos = glm.vec3(0.0, 2.0, 6.0)
         self.robot_pos = glm.vec3(0.0, 0.0, 0.0)
         self.robot_ang = 180.0
 
-        robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
-        terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
+        robot = mesh.Mesh("src/models/perseverance/ImageToStl.com_25042_perseverance.obj")
+        terrain = terraingen.Terrain("src/data/terrain_mesh_section.vtk")
 
         #print(terrain.obj_count)
 
