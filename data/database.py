@@ -159,8 +159,9 @@ def update_history():
 
 if __name__ == "__main__":
     print("Fetching Google Sheets data...")
-    #history_data = read_history()
-    #authenticate()
+    # authenticate()
+    # history_data = read_history()
+
     print(history_data)
 
 

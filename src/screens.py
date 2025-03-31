@@ -175,7 +175,15 @@ class App(tk.Tk):
         frame = self.frames[page_name]
         frame.tkraise()
 
+        if page_name == "DummyPage": # not sure if this part is correct
+            spawn_screen = self.frames["SpawnScreen"] 
+            start, end = spawn_screen.get_selected_points(self)
 
+            # Update robot positions if valid
+            if start and end and hasattr(self.robot, 'Brain'):
+                self.robot.initPosition = start
+                self.robot.endPosition = end
+            
 # Welcome Screen
 class WelcomeScreen(tk.Frame):
     def __init__(self, parent, controller, bg_image, logo_image):
@@ -328,11 +336,36 @@ class SelectionScreen(tk.Frame):
         btn_back.pack(side="left", padx=20)
         btn_next.pack(side="right", padx=20)
 
+
+
 # Spawn Screen
 class SpawnScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
+
+                # pre-defined instance variables for coordinates for selection
+        self.start_points = [
+            (100, 150),                     # Format (x, y)
+            (250, 300),
+            (400, 200)
+        ]
+
+        self.silicon_points = [
+            (500, 350),
+            (600, 250),
+            (300, 450)
+        ]
+
+        # Visualization of the points
+        self.point_radius = 10
+        self.start_color = "green"
+        self.end_color = "blue"
+        self.highlight_color = "red"
+
+        self.selected_start = None          # Will store (x, y) tuple
+        self.selected_end = None            # same
+        self.point_objects = []             # Canvas references
 
         title_label = tk.Label(self, text="Select Your Station Location", font=("Orbitron", 24), bg="#D99F6B")
         title_label.pack(pady=10)
@@ -347,6 +380,7 @@ class SpawnScreen(tk.Frame):
             self.station_canvas = tk.Canvas(image_frame, bg="#000000", highlightthickness=0)
             self.station_canvas.pack(fill="both", expand=True)
             self.station_canvas.bind("<Configure>", self._resize_station)
+            self.station_canvas.bind("<Button-1>", self._on_canvas_click)       # added clicker
             self.station_image_id = None
         else:
             tk.Label(image_frame, text="Station Image", font=("Orbitron", 20), bg="#000000", fg="white").pack(expand=True)
@@ -369,6 +403,56 @@ class SpawnScreen(tk.Frame):
         go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=lambda: controller.show_frame("DummyPage"))
         go_button.pack(pady=20)
 
+    def _draw_points(self):
+        """Draw predefined points on the map"""
+        # Clear existing
+        for point in self.point_objects:
+            self.station_canvas.delete(point)
+        self.point_objects = []
+        
+        # Draw start points
+        for point in self.start_points:
+            x, y = point
+            color = self.highlight_color if point == self.selected_start else self.start_color
+            point_id = self.station_canvas.create_oval(
+                x - self.point_radius, y - self.point_radius,
+                x + self.point_radius, y + self.point_radius,
+                fill=color, outline="white"
+            )
+            self.point_objects.append(point_id)
+        
+        # Draw silicon points
+        for point in self.silicon_points:
+            x, y = point
+            color = self.highlight_color if point == self.selected_end else self.end_color
+            point_id = self.station_canvas.create_oval(
+                x - self.point_radius, y - self.point_radius,
+                x + self.point_radius, y + self.point_radius,
+                fill=color, outline="white"
+            )
+            self.point_objects.append(point_id)
+
+    def _is_click_near(self, x, y, point):
+        """Check if click is near a predefined point"""
+        px, py = point
+        return (x - px)**2 + (y - py)**2 <= self.point_radius**2
+
+    def _on_canvas_click(self, event):
+        """Handle map clicks for point selection"""
+        # Check start points
+        for point in self.start_points:
+            if self._is_click_near(event.x, event.y, point):
+                self.selected_start = point
+                break
+        else:  # Check silicon points if no start point clicked
+            for point in self.silicon_points:
+                if self._is_click_near(event.x, event.y, point):
+                    self.selected_end = point
+                    break
+        
+        self._draw_points()  # Update visuals
+
+
     def _resize_station(self, event):
         if self.controller.station_orig:
             orig_width, orig_height = self.controller.station_orig.size
@@ -383,7 +467,11 @@ class SpawnScreen(tk.Frame):
                 self.station_canvas.itemconfig(self.station_image_id, image=self.station_image)
             else:
                 self.station_image_id = self.station_canvas.create_image(0, 0, image=self.station_image, anchor="nw")
+            self._draw_points()
 
+    def get_selected_points(self):
+        """For App controller to get coordinates"""
+        return self.selected_start, self.selected_end
 
 # Dummy Page FOR TERRAIN AND ROBOT
 class DummyPage(tk.Frame):
