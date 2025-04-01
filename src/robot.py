@@ -76,6 +76,8 @@ class Robot:
 
         return cost
     
+    
+    
 
     
     def get_next_pos_in_path(self):

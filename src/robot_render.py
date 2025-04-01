@@ -9,6 +9,7 @@ import math
 import numpy as np
 from PIL import Image
 from pyglm import glm
+from batterybar import BatteryBar
 
 null_ptr = ctypes.c_void_p
 
@@ -23,6 +24,9 @@ class UI():
         self.robot_forward = glm.vec3(0.0, 0.0, -1.0)
 
         self.yaw = -90.0; self.pitch = 0.0; self.lastX = 400.0; self.lastY = 300.0; self.first_mouse = True
+
+        self.battery = 1.0  # Initialize battery value
+        self.battery_bar = None  # Placeholder, will be set in main()
 
     def set_pos(self, x, y):
         self.robot_pos.x = x; self.cam_pos.x = x
@@ -117,6 +121,8 @@ class UI():
         robot = mesh.Mesh("src/models/perseverance/ImageToStl.com_25042_perseverance.obj")
         terrain = terraingen.Terrain("src/data/terrain_mesh_section.vtk")
 
+        self.battery_bar = BatteryBar()
+
         #print(terrain.obj_count)
 
         tmodel = glm.rotate(glm.mat4(1.0), glm.radians(-90), glm.vec3(1.0, 0.0, 0.0))
@@ -161,6 +167,15 @@ class UI():
           robot.draw()
 
           #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
+
+          # Update and draw battery bar
+          self.battery -= self.delta_time * 0.002
+          self.battery = max(0.0, self.battery)
+          self.battery_bar.fill = self.battery
+          
+          glDisable(GL_DEPTH_TEST)
+          self.battery_bar.draw(800, 600)
+          glEnable(GL_DEPTH_TEST)
 
           # events & buffer swap
           glfw.swap_buffers(window)
