@@ -122,7 +122,7 @@ class UI():
         self.robot_ang = 180.0
 
         robot = mesh.Mesh(self.robot_mesh)
-        terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
+        terrain = terraingen.Terrain("src/data/terrain_mesh_section.vtk")
 
         self.battery_bar = BatteryBar()
 

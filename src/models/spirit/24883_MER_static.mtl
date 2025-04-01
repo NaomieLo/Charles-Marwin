@@ -9,7 +9,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_panels_jpg.png
+map_Kd src/models/spirit/tex_panels_jpg.png
 bump tex_panels_n_jpg.png
 
 newmtl mat1
@@ -21,7 +21,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_panels2_jpg.png
+map_Kd src/models/spirit/tex_panels2_jpg.png
 bump tex_panels2_n_jpg.png
 
 newmtl mat2
@@ -33,7 +33,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_instruments_jpg.png
+map_Kd src/models/spirit/tex_instruments_jpg.png
 
 newmtl mat3
 Ns 550.00001
@@ -44,7 +44,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_body_jpg.png
+map_Kd src/models/spirit/tex_body_jpg.png
 bump tex_body_n_jpg.png
 
 newmtl mat4
@@ -56,7 +56,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_suspension_jpg.png
+map_Kd src/models/spirit/tex_suspension_jpg.png
 bump tex_suspension_n_jpg.png
 
 newmtl mat5
@@ -78,7 +78,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_mast_jpg.png
+map_Kd src/models/spirit/tex_mast_jpg.png
 
 newmtl mat7
 Ns 699.99999
@@ -100,7 +100,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/spirit/tex_arm_jpg.png
+map_Kd src/models/spirit/tex_arm_jpg.png
 
 newmtl mat9
 Ns 250
