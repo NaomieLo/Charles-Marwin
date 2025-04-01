@@ -456,16 +456,23 @@ class DummyPage(tk.Frame):
                         #not sufficient battery
                         robot.Motor.stop()
                         robot.Motor.charge_battery()#charge until full
+                        robot.Motor.start_motors()#restart motor
                             
                     if (curr != robot.endPosition) and (robot.curr_idx==len(robot.Path)-1):
                         #This part is only for A* since it is toooooo slow on a large map
                         #the path is a partial path and robot has reach the end of the path
+                        
                         if iter >5:
+                            #early termination
+                            robot.Motor.stop()
+                            self.controller.show_frame("FinishScreen")
                             return False #Failed to reach goal within 5 tries. 50 sec for each try
+                        
                         self.robot_get_path(robot.Path[robot.curr_idx])
                         iter+=1
                         robot.curr_idx=0
-
+                        
+                robot.Motor.stop()#turn off motor
                 self.controller.show_frame("FinishScreen")
                 return True
         except Exception as e:
