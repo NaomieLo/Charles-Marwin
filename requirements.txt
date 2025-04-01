@@ -7,4 +7,9 @@ rasterio==1.4.3
 zope==5.12
 opencv-python==4.11.0.86
 matplotlib==3.10.0
-
+PyOpenGL==3.1.9
+PyOpenGL-accelerate==3.1.9
+pyglm==2.8.0
+pyvista==0.44.1
+pillow==11.1.0
+glfw==2.8.0
