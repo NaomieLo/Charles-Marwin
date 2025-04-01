@@ -186,5 +186,5 @@ class UI():
 
         glfw.terminate()
 
-ui_instance = UI()
-ui_instance.main()
+# ui_instance = UI()
+# ui_instance.main()
