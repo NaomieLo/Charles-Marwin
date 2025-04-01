@@ -17,7 +17,7 @@ class UI():
     def __init__(self):
         self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
 
-        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0
+        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None
 
         self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
 
@@ -27,6 +27,9 @@ class UI():
 
         self.battery = 1.0  # Initialize battery value
         self.battery_bar = None  # Placeholder, will be set in main()
+
+    def set_mesh(self, path):
+        self.robot_mesh = path
 
     def set_pos(self, x, y):
         self.robot_pos.x = x; self.cam_pos.x = x
@@ -118,7 +121,7 @@ class UI():
         self.robot_pos = glm.vec3(0.0, 0.0, 0.0)
         self.robot_ang = 180.0
 
-        robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
+        robot = mesh.Mesh(self.robot_mesh)
         terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
 
         self.battery_bar = BatteryBar()
