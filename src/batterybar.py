@@ -9,7 +9,7 @@ class BatteryBar:
     def __init__(self):
         self.fill = 1.0  # battery life (1.0 = full, 0.0 = empty)
 
-        self.shader = shader.Shader("battery_vert.glsl", "battery_frag.glsl")
+        self.shader = shader.Shader("src/battery_vert.glsl", "src/battery_frag.glsl")
 
         # Rectangle from (0, 0) to (1, 0.1) — top-left corner of screen
         self.vertices = np.array([
