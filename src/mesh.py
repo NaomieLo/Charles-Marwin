@@ -39,7 +39,8 @@ class Mesh:
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
 
-        matkeys = self.materials.mats.keys()
+        matkeys = self.materials.mats.keys() if self.materials else []
+
 
         # bind materials to texture buffer
         self.textures = []
@@ -157,13 +158,30 @@ class Mesh:
             self.make_corner(words[2 + i], v, vt, container)
             self.make_corner(words[3 + i], v, vt, container)
 
-    def make_corner(self, corner_description, v, vt, container):
-        v_vt_vn = corner_description.split("/")
-        if v_vt_vn[1] == '': v_vt_vn[1] = float(0)
-        for element in v[int(v_vt_vn[0]) - 1]:
-            container.append(element)
-        for element in vt[int(v_vt_vn[1]) - 1]:
-            container.append(element)
+    # def make_corner(self, corner_description, v, vt, container):
+    #     v_vt_vn = corner_description.split("/")
+    #     if v_vt_vn[1] == '': v_vt_vn[1] = float(0)
+    #     for element in v[int(v_vt_vn[0]) - 1]:
+    #         container.append(element)
+    #     for element in vt[int(v_vt_vn[1]) - 1]:
+    #         container.append(element)
+    def make_corner(self, corner, v, vt, container):
+        # Split the corner into its components
+        v_vt_vn = corner.split("/")
+
+        # Convert indices (OBJ is 1-indexed)
+        v_idx = int(v_vt_vn[0]) - 1 if len(v_vt_vn) > 0 and v_vt_vn[0] else 0
+        vt_idx = int(v_vt_vn[1]) - 1 if len(v_vt_vn) > 1 and v_vt_vn[1] else 0
+
+        vertex = v[v_idx]
+        tex_coord = vt[vt_idx] if len(vt) > vt_idx else [0.0, 0.0]
+
+        # Append position (x, y, z), texture coord (s, t), and dummy normal (0.0, 0.0, 1.0)
+        container.append(vertex[0])
+        container.append(vertex[1])
+        container.append(vertex[2])
+        container.append(tex_coord[0])
+        container.append(tex_coord[1])
 
     def destroy(self):
         glDeleteVertexArrays(1, (self.vao,))
