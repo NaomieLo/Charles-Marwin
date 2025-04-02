@@ -199,10 +199,10 @@ class UI():
             rmodel = glm.translate(glm.mat4(1), pos)
             rmodel = glm.scale(rmodel, glm.vec3(0.5, 0.5, 0.5))
 
-            self.shader.use()
-            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
-            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
-            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+            # self.shader.use()
+            # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
+            # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
+            # glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
             rock.draw()
 
           # events & buffer swap
