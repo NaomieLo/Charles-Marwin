@@ -90,7 +90,7 @@ class UI():
         self.cam_front = glm.normalize(direction)
 
     
-    def main(self):
+    def main(self, stop_event=None):
         # ======================= #
         #          SETUP          #
         # ======================= #
@@ -100,10 +100,16 @@ class UI():
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+        glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
+
 
         # Initialize GL Context
         window = glfw.create_window(800, 600, "Charles Marwin", None, None)
         glfw.make_context_current(window)
+        if not window:
+            print(" Failed to create GLFW window.")
+            glfw.terminate()
+            return
         glViewport(0,0,800,600)
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -119,9 +125,19 @@ class UI():
         self.robot_ang = 180.0
 
         robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
-        terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
+        terrain = terraingen.Terrain("../data/terrain_mesh_section.vtk")
 
         self.battery_bar = BatteryBar()
+
+        rock = mesh.Mesh("models/silicon/rock.obj")
+        print("Terrain and rock models loaded.")
+
+        # coordinates of silicon deposits
+        rock_positions = [
+            glm.vec3(-100.0, 0.0, 100.0),  
+            glm.vec3(50.0, 0.0, -120.0),  
+            glm.vec3(0.0, 0.0, 0.0),      
+        ]
 
         #print(terrain.obj_count)
 
@@ -134,6 +150,8 @@ class UI():
         #       RENDER LOOP       #
         # ======================= #
         while not (glfw.window_should_close(window)):
+          if stop_event and stop_event.is_set():
+            break
           # Update deltatime
           current_frame = glfw.get_time()
           self.delta_time = current_frame - self.last_frame
@@ -177,11 +195,32 @@ class UI():
           self.battery_bar.draw(800, 600)
           glEnable(GL_DEPTH_TEST)
 
+          for pos in rock_positions:
+            rmodel = glm.translate(glm.mat4(1), pos)
+            rmodel = glm.scale(rmodel, glm.vec3(0.5, 0.5, 0.5))
+
+            self.shader.use()
+            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
+            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
+            glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
+            rock.draw()
+
           # events & buffer swap
           glfw.swap_buffers(window)
           glfw.poll_events()
 
         glfw.terminate()
 
-ui_instance = UI()
-ui_instance.main()
+# def run_with_event(stop_event):
+#     print("[OpenGL Process] Starting rendering window...")
+#     ui = UI()
+#     ui.main(stop_event)
+#     print("[OpenGL Process] Shutdown complete.")
+
+if __name__ == "__main__":
+    ui_instance = UI()
+    ui_instance.main()
+
+
+# ui_instance = UI()
+# ui_instance.main()

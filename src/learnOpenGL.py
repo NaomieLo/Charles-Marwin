@@ -29,6 +29,8 @@ class Terrain(object):
 
         # Convert to triangles (Mandatory for GLMeshItem)
         mesh = mesh.triangulate()
+        self.bounds = mesh.bounds
+
 
         # Extract full vertex and face data
         verts = np.array(mesh.points, dtype=np.float32)
@@ -42,7 +44,11 @@ class Terrain(object):
         # if not has_variation:
         #     print("⚠ WARNING: Elevation is flat! Adding artificial variation for testing.")
         #     verts[:, 2] += np.random.uniform(0, 10, verts.shape[0])  # Add small height differences
-
+        
+        # Store terrain center before centering
+        self.terrain_center_x = np.mean(verts[:, 0])
+        self.terrain_center_y = np.mean(verts[:, 1])
+        self.terrain_center_z = np.mean(verts[:, 2])
         # Shift elevation so the minimum is at 0
         verts[:, 2] -= np.min(verts[:, 2])  # Ensures minimum elevation is now 0
 
@@ -50,9 +56,9 @@ class Terrain(object):
         elevation_scaled = verts[:, 2] / np.max(verts[:, 2])
 
         # Center terrain around (0,0,0)
-        verts[:, 0] -= np.min(verts[:, 0])  
-        verts[:, 1] -= np.min(verts[:, 1])  
-        verts[:, 2] -= np.mean(verts[:, 2])
+        verts[:, 0] -= self.terrain_center_x
+        verts[:, 1] -= self.terrain_center_y
+        verts[:, 2] -= self.terrain_center_z
 
         self.y_offset = np.max(verts[:, 1])
         print(np.max(verts[:, 1]))
@@ -90,6 +96,12 @@ class Terrain(object):
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
 
+        print(f" Terrain bounds:")
+        print(f"X: {self.bounds[0]:.2f} to {self.bounds[1]:.2f}")
+        print(f"Y: {self.bounds[2]:.2f} to {self.bounds[3]:.2f}")
+        print(f"Z: {self.bounds[4]:.2f} to {self.bounds[5]:.2f}")
+        print(f" Terrain center: ({self.terrain_center_x:.2f}, {self.terrain_center_y:.2f}, {self.terrain_center_z:.2f})")
+
     def draw(self):
         glBindVertexArray(self.vao)
         # glDrawArrays(GL_TRIANGLES,0,self.test_num)
@@ -114,7 +126,7 @@ class Terrain(object):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    file = "data/terrain_mesh_section.vtk"
+    file = "../data/terrain_mesh_section.vtk"
     t = Terrain(file)
 
 

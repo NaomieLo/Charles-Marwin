@@ -3,6 +3,10 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter import PhotoImage
+import sys
+import subprocess
+import robot_render as robot_render
+
 from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
@@ -366,8 +370,10 @@ class SpawnScreen(tk.Frame):
         lbl_y.grid(row=0, column=1, padx=5, pady=5)
 
         # go button
-        go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=lambda: controller.show_frame("DummyPage"))
+        go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=self.go_action)
+        self.launch_terrain()
         go_button.pack(pady=20)
+    
 
     def _resize_station(self, event):
         if self.controller.station_orig:
@@ -383,6 +389,15 @@ class SpawnScreen(tk.Frame):
                 self.station_canvas.itemconfig(self.station_image_id, image=self.station_image)
             else:
                 self.station_image_id = self.station_canvas.create_image(0, 0, image=self.station_image, anchor="nw")
+    
+    def launch_terrain(self):
+        python_executable = sys.executable
+        subprocess.Popen([python_executable, "robot_render.py"])
+
+    def go_action(self):
+        print("go button clicked: launching terrain")
+        self.launch_terrain()
+        self.controller.show_frame("DummyPage")
 
 
 # Dummy Page FOR TERRAIN AND ROBOT
@@ -396,6 +411,9 @@ class DummyPage(tk.Frame):
 
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
+
+        
+
 
 # Finish Screen
 class FinishScreen(tk.Frame):
@@ -488,13 +506,17 @@ class HistoryScreen(tk.Frame):
             label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
             cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][6]), font=("Orbitron", 15), borderwidth=0, width=20)
             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
-
-            
-
+     
         
-        
+
+# if __name__ == "__main__":
+#     app = App()
+#     #load_fonts()
+#     app.mainloop()
 
 if __name__ == "__main__":
+    # multiprocessing.set_start_method("spawn")  # Optional but recommended for macOS
+    print("STARTING APP")
     app = App()
-    #load_fonts()
     app.mainloop()
+    print("APP CLOSED")
