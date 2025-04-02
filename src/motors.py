@@ -77,6 +77,7 @@ class Motors:
             return False
 
         elevation_diff = next_elevation - cur_elevation
+
         old_battery = self.battery
         
         # Apply consumption based on elevation
