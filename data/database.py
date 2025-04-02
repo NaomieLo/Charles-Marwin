@@ -22,7 +22,7 @@ def authenticate():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file("data/credentials.json", SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file("../data/credentials.json", SCOPES)
             creds = flow.run_local_server(port=0, open_browser=False)
 
             #creds = flow.run_local_server(port=0) 
