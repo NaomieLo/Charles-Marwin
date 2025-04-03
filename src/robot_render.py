@@ -9,6 +9,7 @@ import math
 import numpy as np
 from PIL import Image
 from pyglm import glm
+from batterybar import BatteryBar
 
 null_ptr = ctypes.c_void_p
 
@@ -16,13 +17,19 @@ class UI():
     def __init__(self):
         self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
 
-        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0
+        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None
 
         self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
 
         self.robot_forward = glm.vec3(0.0, 0.0, -1.0)
 
         self.yaw = -90.0; self.pitch = 0.0; self.lastX = 400.0; self.lastY = 300.0; self.first_mouse = True
+
+        self.battery = 1.0  # Initialize battery value
+        self.battery_bar = None  # Placeholder, will be set in main()
+
+    def set_mesh(self, path):
+        self.robot_mesh = path
 
     def set_pos(self, x, y):
         self.robot_pos.x = x; self.cam_pos.x = x
@@ -106,16 +113,18 @@ class UI():
         glfw.set_cursor_pos_callback(window,self.mouse_callback)
 
         # Compile Shader
-        self.shader = shader.Shader("vertex_shader.glsl", "fragment_shader.glsl")
-        self.shader2 = shader.Shader("vertex_shader_color.glsl", "fragment_shader_color.glsl")
+        self.shader = shader.Shader("src/vertex_shader.glsl", "src/fragment_shader.glsl")
+        self.shader2 = shader.Shader("src/vertex_shader_color.glsl", "src/fragment_shader_color.glsl")
 
         # Models and views
         self.cam_pos = glm.vec3(0.0, 2.0, 6.0)
         self.robot_pos = glm.vec3(0.0, 0.0, 0.0)
         self.robot_ang = 180.0
 
-        robot = mesh.Mesh("models/perseverance/ImageToStl.com_25042_perseverance.obj")
-        terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
+        robot = mesh.Mesh(self.robot_mesh)
+        terrain = terraingen.Terrain("src/data/terrain_mesh_section.vtk")
+
+        self.battery_bar = BatteryBar()
 
         #print(terrain.obj_count)
 
@@ -162,11 +171,20 @@ class UI():
 
           #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
 
+          # Update and draw battery bar
+          self.battery -= self.delta_time * 0.002
+          self.battery = max(0.0, self.battery)
+          self.battery_bar.fill = self.battery
+          
+          glDisable(GL_DEPTH_TEST)
+          self.battery_bar.draw(800, 600)
+          glEnable(GL_DEPTH_TEST)
+
           # events & buffer swap
           glfw.swap_buffers(window)
           glfw.poll_events()
 
         glfw.terminate()
 
-ui_instance = UI()
-ui_instance.main()
+# ui_instance = UI()
+# ui_instance.main()

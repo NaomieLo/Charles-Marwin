@@ -7,9 +7,11 @@ from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
+from robot_render import UI
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
+import Exceptions
 
 # SELECT THE ROBOT AND PFA helper
 class Scroller(tk.Frame):
@@ -125,7 +127,8 @@ class App(tk.Tk):
         self.geometry("800x600")
         self.resizable(True, True)
         self.robot = Robot("Default", "None")
-
+        self.robot_ui = UI()
+        
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1)
@@ -292,8 +295,7 @@ class SelectionScreen(tk.Frame):
 
         # robot scroller
         scroller1 = Scroller(
-            top_frame, "Select Your Robot", items=["Robot 1", "Robot 2", "Robot 3", 
-                                                   "Robot 4", "Robot 5", "Robot 6", "Robot 7"], bg_color="#D99F6B"
+            top_frame, "Select Your Robot", items=["Perseverance", "Curiosity", "Spirit"], bg_color="#D99F6B"
         )
         scroller1.pack(pady=10)
 
@@ -315,8 +317,9 @@ class SelectionScreen(tk.Frame):
         )
 
         def make_robot():
-            controller.robot = Robot(scroller1.items[scroller1.index], scroller2.items[scroller2.index])
             controller.show_frame("SpawnScreen")
+            controller.robot = Robot(scroller1.items[scroller1.index], scroller2.items[scroller2.index])
+            controller.robot_ui.set_mesh(controller.robot.Mesh)
 
         btn_next = tk.Button(
             bottom_frame,
@@ -365,8 +368,15 @@ class SpawnScreen(tk.Frame):
         lbl_x.grid(row=0, column=0, padx=5, pady=5)
         lbl_y.grid(row=0, column=1, padx=5, pady=5)
 
+        def main_app_loop():
+            #Set sim initial position to robot.initPosition
+            controller.show_frame("DummyPage")
+            start_pos = controller.robot.initPosition
+            end_pos = controller.robot.endPosition
+            controller.frames["DummyPage"].start_robot(start_pos, end_pos)
+
         # go button
-        go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=lambda: controller.show_frame("DummyPage"))
+        go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=main_app_loop)
         go_button.pack(pady=20)
 
     def _resize_station(self, event):
@@ -390,12 +400,87 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
-
         label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
 
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
+    
+    def robot_get_path(self,start,end):
+        path= self.controller.robot.Brain.find_path(start,end)
+        if path is not None:
+            self.controller.robot.Path=path
+        else:
+            raise Exceptions.NoPathFound("Failed to find a path")
+        
+    def move_to_next_pos(self,elevation):
+        try:
+            r,c=self.controller.robot.get_next_pos_in_path()
+            self.controller.robot.curr_idx+=1
+            #Move the robot to next position in scene
+            self.controller.robot_ui.set_pos(c,r)
+            self.controller.robot_ui.robot_pos.z=elevation
+        except Exception as e:
+            print(e)
+    
+    def start_robot(self,start,end):
+        '''
+        The main execution loop of the robot is here
+        It finds the path and move the robot
+        It stops and charge the robot when there is no sufficient battery
+        Reture: True->reach end; False->failed to reach end
+        '''
+        try:
+            robot=self.controller.robot
+            #find path
+            self.robot_get_path(start,end)
+            self.controller.robot_ui.main()
+            
+            #start engine
+            if robot.Motor.start_motors():
+                #main loop
+                iter = 1# iteration counter for A*
+                while robot.Path[robot.curr_idx] != robot.endPosition:
+                    next = robot.get_next_pos_in_path()#get next position
+                    curr = robot.Path[robot.curr_idx]
+                    
+                    if curr==next:
+                        return True #reach the end
+                    
+                    cur_elevation = robot.Sensor.get_elevation_at_position(curr[1],curr[0])
+                    next_elevation = robot.Sensor.get_elevation_at_position(next[1],next[0])
+                    if robot.Motor.consume_battery(cur_elevation,next_elevation):
+                        #has enough battery
+                        self.move_to_next_pos(next_elevation)
+                    else:
+                        #not sufficient battery
+                        robot.Motor.stop()
+                        robot.Motor.charge_battery()#charge until full
+                        robot.Motor.start_motors()#restart motor
+                            
+                    if (curr != robot.endPosition) and (robot.curr_idx==len(robot.Path)-1):
+                        #This part is only for A* since it is toooooo slow on a large map
+                        #the path is a partial path and robot has reach the end of the path
+                        
+                        if iter >5:
+                            #early termination
+                            robot.Motor.stop()
+                            self.controller.show_frame("FinishScreen")
+                            return False #Failed to reach goal within 5 tries. 50 sec for each try
+                        
+                        self.robot_get_path(robot.Path[robot.curr_idx])
+                        iter+=1
+                        robot.curr_idx=0
+                        
+                robot.Motor.stop()#turn off motor
+                self.controller.show_frame("FinishScreen")
+                return True
+        except Exception as e:
+            print(e)
+            self.controller.frames["FinishScreen"].label.configure(text="Failed to reach the destination.")
+            self.controller.show_frame("FinishScreen")
+            return False
+        
 
 # Finish Screen
 class FinishScreen(tk.Frame):
@@ -403,8 +488,8 @@ class FinishScreen(tk.Frame):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        label = tk.Label(self, text="You've reached your destination!", font=("Orbitron", 24), bg="#D99F6B")
-        label.pack(pady=40)
+        self.label = tk.Label(self, text="You've reached your destination!", font=("Orbitron", 24), bg="#D99F6B")
+        self.label.pack(pady=40)
 
         button_frame = tk.Frame(self, bg="#D99F6B")
         button_frame.pack(pady=20)

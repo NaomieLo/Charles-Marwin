@@ -1,8 +1,8 @@
-import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from PathFinderBase import PathFinderBase
 from BidirectionalAStar import BidirectionalAStar
+from cv2 import pyrDown
 
 class MultiResolutionPathFinder(PathFinderBase):
     
@@ -22,7 +22,7 @@ class MultiResolutionPathFinder(PathFinderBase):
         pyramid = [elevation_map]
 
         for _ in range(levels):
-            elevation_map = cv2.pyrDown(elevation_map)  # Downsample
+            elevation_map = pyrDown(elevation_map)  # Downsample
             pyramid.append(elevation_map)
 
         return pyramid
