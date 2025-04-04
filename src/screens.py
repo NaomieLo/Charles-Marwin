@@ -7,7 +7,7 @@ from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
-from robot_render import UI
+from robot_render import UIDu
 import turtle
 import math
 
@@ -406,11 +406,9 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
-
-        label = tk.Label(self, text="Detecting Path...", font=("Orbitron", 24), bg="#D99F6B")
+        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
 
-        #REMOVE ONCE SIMULATION IS READY
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
 
