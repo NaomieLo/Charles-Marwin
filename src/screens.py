@@ -411,7 +411,7 @@ class DummyPage(tk.Frame):
 
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
-
+    
     def robot_get_path(self,start,end):
         path= self.controller.robot.Brain.find_path(start,end)
         if path is not None:
@@ -486,8 +486,7 @@ class DummyPage(tk.Frame):
             self.controller.frames["FinishScreen"].label.configure(text="Failed to reach the destination.")
             self.controller.show_frame("FinishScreen")
             return False
-        
-
+ 
         # DRAW THE ROVER
         self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
         self.canvas.pack(pady=20)
@@ -546,72 +545,6 @@ class DummyPage(tk.Frame):
         """Rotate the rover a little and schedule the next rotation."""
         self.rover.right(5)  
         self.after(50, self.animate_rover) 
-
-  
-
-
-
-
-        # DRAW THE ROVER
-        self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
-        self.canvas.pack(pady=20)
-        
-        self.screen = turtle.TurtleScreen(self.canvas)
-        self.screen.bgcolor("#D99F6B")
-
-        self.rover = turtle.RawTurtle(self.screen)
-        rover_shape = turtle.Shape("compound") 
-        #body
-        body_points = [(-50, -15),(50, -15),(50, 15),(-50, 15)]
-        rover_shape.addcomponent(body_points, "gray", "gray")
-
-        #wheels
-        wheel_radius = 10
-        wheel_y = -20  # Vertical position for wheels
-        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
-        for (cx, cy) in wheel_centers:
-            pts = circle_points(cx, cy, wheel_radius, steps=20)
-            rover_shape.addcomponent(pts, "black", "black")
-        
-        #Top platform
-        top_platform_points = [(-20, 15),( 20, 15),( 20, 30),(-20, 30)]
-        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
-
-        #camera
-        camera_points = [(-3, 30),( 3, 30),( 3, 50),(-3, 50)]
-        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
-        
-        #camera head
-        camera_head = circle_points(0, 55, 5, steps=20)
-        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
-        
-        #antenna
-        antenna = [(30, 15),(34, 15),(35, 45),(30, 45)]
-        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
-        
-        antenna_head = circle_points(32, 50, 4, steps=20)
-        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
-        
-        
-        self.screen.register_shape("rover", rover_shape)
-        
-        #set turtle to rover shape
-        self.rover = turtle.RawTurtle(self.screen)
-        self.rover.shape("rover")
-        self.rover.color("black")
-        self.rover.speed(0) 
-
-        self.rover.penup()
-        self.rover.goto(0, 0)
-
-        self.animate_rover()
-
-    def animate_rover(self):
-        """Rotate the rover a little and schedule the next rotation."""
-        self.rover.right(5)  
-        self.after(50, self.animate_rover) 
-
-  
 
 def circle_points(cx, cy, r, steps=20):
     pts = []
