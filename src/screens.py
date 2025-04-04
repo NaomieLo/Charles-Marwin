@@ -7,9 +7,10 @@ from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
-from robot_render import UIDu
+from robot_render import UI
 import turtle
 import math
+import time
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
@@ -132,10 +133,12 @@ class App(tk.Tk):
         self.robot = Robot("Default", "None")
         self.robot_ui = UI()
         
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        self.container = tk.Frame(self)
+        self.container.pack(side="top", fill="both", expand=True)
+
+        # Optionally configure the grid if you're using it for layout
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
 
         # load background and logo images
         try:
@@ -412,8 +415,16 @@ class DummyPage(tk.Frame):
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
     
+    start_time = 0
+    end_time = 0
     def robot_get_path(self,start,end):
+        start_time = time.time()
         path= self.controller.robot.Brain.find_path(start,end)
+        end_time = time.time()
+
+        elapsed_time = end_time - start_time
+        self.controller.robot.elapsed_time = elapsed_time
+
         if path is not None:
             self.controller.robot.Path=path
         else:
@@ -631,7 +642,7 @@ class MetricDisplay(tk.Frame):
             return math.sqrt((p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)
         
         distance = distance_calc(robot.initPosition, robot.endPosition)
-        
+        elapsed_time_str = f"{robot.elapsed_time:.2f} s" if hasattr(robot, "elapsed_time") else "0.00 s"
         #stats found in path
         stats_data = [
             ("Start Location:", str(robot.initPosition)),
@@ -639,7 +650,7 @@ class MetricDisplay(tk.Frame):
             ("Robot:", robot.Name),
             ("AI:", robot.brain_name),
             ("Distance:", f"{distance:.2f}"),
-            ("Time:", "UPDATE"),
+            ("Time:", elapsed_time_str),
             ("Cost:", str(robot.compute_path_cost()))
         ]
 
