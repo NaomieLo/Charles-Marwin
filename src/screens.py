@@ -10,7 +10,7 @@ from robot import Robot
 from robot_render import UI
 import turtle
 import math
-import time
+import time as timemodule
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
@@ -415,12 +415,10 @@ class DummyPage(tk.Frame):
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
     
-    start_time = 0
-    end_time = 0
     def robot_get_path(self,start,end):
-        start_time = time.time()
+        start_time = timemodule.time()
         path= self.controller.robot.Brain.find_path(start,end)
-        end_time = time.time()
+        end_time = timemodule.time()
 
         elapsed_time = end_time - start_time
         self.controller.robot.elapsed_time = elapsed_time
