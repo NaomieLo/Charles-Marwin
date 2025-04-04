@@ -7,6 +7,7 @@ from tkinter import Entry
 from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
+from robot_render import UIDu
 import turtle
 import math
 
@@ -396,15 +397,87 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
-
-        label = tk.Label(self, text="Detecting Path...", font=("Orbitron", 24), bg="#D99F6B")
+        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
         label.pack(pady=40)
 
-        #REMOVE ONCE SIMULATION IS READY
         next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
         next_button.pack(pady=20)
-
-
+    
+    def robot_get_path(self,start,end):
+        path= self.controller.robot.Brain.find_path(start,end)
+        if path is not None:
+            self.controller.robot.Path=path
+        else:
+            raise Exceptions.NoPathFound("Failed to find a path")
+        
+    def move_to_next_pos(self,elevation):
+        try:
+            r,c=self.controller.robot.get_next_pos_in_path()
+            self.controller.robot.curr_idx+=1
+            #Move the robot to next position in scene
+            self.controller.robot_ui.set_pos(c,r)
+            self.controller.robot_ui.robot_pos.z=elevation
+        except Exception as e:
+            print(e)
+    
+    def start_robot(self,start,end):
+        '''
+        The main execution loop of the robot is here
+        It finds the path and move the robot
+        It stops and charge the robot when there is no sufficient battery
+        Reture: True->reach end; False->failed to reach end
+        '''
+        try:
+            robot=self.controller.robot
+            #find path
+            self.robot_get_path(start,end)
+            self.controller.robot_ui.main()
+            
+            #start engine
+            if robot.Motor.start_motors():
+                #main loop
+                iter = 1# iteration counter for A*
+                while robot.Path[robot.curr_idx] != robot.endPosition:
+                    next = robot.get_next_pos_in_path()#get next position
+                    curr = robot.Path[robot.curr_idx]
+                    
+                    if curr==next:
+                        return True #reach the end
+                    
+                    cur_elevation = robot.Sensor.get_elevation_at_position(curr[1],curr[0])
+                    next_elevation = robot.Sensor.get_elevation_at_position(next[1],next[0])
+                    if robot.Motor.consume_battery(cur_elevation,next_elevation):
+                        #has enough battery
+                        self.move_to_next_pos(next_elevation)
+                    else:
+                        #not sufficient battery
+                        robot.Motor.stop()
+                        robot.Motor.charge_battery()#charge until full
+                        robot.Motor.start_motors()#restart motor
+                            
+                    if (curr != robot.endPosition) and (robot.curr_idx==len(robot.Path)-1):
+                        #This part is only for A* since it is toooooo slow on a large map
+                        #the path is a partial path and robot has reach the end of the path
+                        
+                        if iter >5:
+                            #early termination
+                            robot.Motor.stop()
+                            self.controller.show_frame("FinishScreen")
+                            return False #Failed to reach goal within 5 tries. 50 sec for each try
+                        
+                        self.robot_get_path(robot.Path[robot.curr_idx])
+                        iter+=1
+                        robot.curr_idx=0
+                        
+                robot.Motor.stop()#turn off motor
+                self.controller.show_frame("FinishScreen")
+                return True
+        except Exception as e:
+            print(e)
+            self.controller.frames["FinishScreen"].label.configure(text="Failed to reach the destination.")
+            self.controller.show_frame("FinishScreen")
+            return False
+ 
         # DRAW THE ROVER
         self.canvas = tk.Canvas(self, width=400, height=400, bg="#D99F6B",  highlightthickness=0, bd=0)
         self.canvas.pack(pady=20)
