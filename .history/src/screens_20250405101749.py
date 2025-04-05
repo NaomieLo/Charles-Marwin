@@ -8,9 +8,6 @@ from tkinter import font as tkFont
 from PIL import Image, ImageTk
 from robot import Robot
 from robot_render import UI
-import turtle
-import math
-import time as timemodule
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
@@ -41,7 +38,6 @@ class Scroller(tk.Frame):
             width=20,
             height=5,
             bg="white",
-            fg="black",
             relief="solid",
             font=("Roboto", 14),
         )
@@ -142,15 +138,13 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
-        self.container = tk.Frame(self)
-        self.container.pack(side="top", fill="both", expand=True)
-
-        # Optionally configure the grid if you're using it for layout
-        self.container.grid_rowconfigure(0, weight=1)
-        self.container.grid_columnconfigure(0, weight=1)
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
 
         # load background and logo images
         try:
@@ -185,34 +179,30 @@ class App(tk.Tk):
             SpawnScreen,
             DummyPage,
             FinishScreen,
+            MetricDisplay,
             HistoryScreen,
         ):
+            # for F in [HistoryScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
-                    parent=self.container,
+                    parent=container,
                     controller=self,
                     bg_image=self.welcome_bg,
                     logo_image=self.logo_img,
                 )
             elif page_name == "MainMenuScreen":
-                frame = F(
-                    parent=self.container, controller=self, logo_image=self.logo_img
-                )
+                frame = F(parent=container, controller=self, logo_image=self.logo_img)
             else:
-                frame = F(parent=self.container, controller=self)
+                frame = F(parent=container, controller=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
+        # self.show_frame("WelcomeScreen")
+        self.show_frame("HistoryScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
-        if page_name == "MetricDisplay":
-            self.frames["MetricDisplay"] = MetricDisplay(
-                parent=self.container, controller=self
-            )
-            self.frames["MetricDisplay"].grid(row=0, column=0, sticky="nsew")
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -494,13 +484,7 @@ class DummyPage(tk.Frame):
         next_button.pack(pady=20)
 
     def robot_get_path(self, start, end):
-        start_time = timemodule.time()
         path = self.controller.robot.Brain.find_path(start, end)
-        end_time = timemodule.time()
-
-        elapsed_time = end_time - start_time
-        self.controller.robot.elapsed_time = elapsed_time
-
         if path is not None:
             self.controller.robot.Path = path
         else:
@@ -582,76 +566,6 @@ class DummyPage(tk.Frame):
             self.controller.show_frame("FinishScreen")
             return False
 
-        # DRAW THE ROVER
-        self.canvas = tk.Canvas(
-            self, width=400, height=400, bg="#D99F6B", highlightthickness=0, bd=0
-        )
-        self.canvas.pack(pady=20)
-
-        self.screen = turtle.TurtleScreen(self.canvas)
-        self.screen.bgcolor("#D99F6B")
-
-        self.rover = turtle.RawTurtle(self.screen)
-        rover_shape = turtle.Shape("compound")
-        # body
-        body_points = [(-50, -15), (50, -15), (50, 15), (-50, 15)]
-        rover_shape.addcomponent(body_points, "gray", "gray")
-
-        # wheels
-        wheel_radius = 10
-        wheel_y = -20  # Vertical position for wheels
-        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
-        for cx, cy in wheel_centers:
-            pts = circle_points(cx, cy, wheel_radius, steps=20)
-            rover_shape.addcomponent(pts, "black", "black")
-
-        # Top platform
-        top_platform_points = [(-20, 15), (20, 15), (20, 30), (-20, 30)]
-        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
-
-        # camera
-        camera_points = [(-3, 30), (3, 30), (3, 50), (-3, 50)]
-        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
-
-        # camera head
-        camera_head = circle_points(0, 55, 5, steps=20)
-        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
-
-        # antenna
-        antenna = [(30, 15), (34, 15), (35, 45), (30, 45)]
-        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
-
-        antenna_head = circle_points(32, 50, 4, steps=20)
-        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
-
-        self.screen.register_shape("rover", rover_shape)
-
-        # set turtle to rover shape
-        self.rover = turtle.RawTurtle(self.screen)
-        self.rover.shape("rover")
-        self.rover.color("black")
-        self.rover.speed(0)
-
-        self.rover.penup()
-        self.rover.goto(0, 0)
-
-        self.animate_rover()
-
-    def animate_rover(self):
-        """Rotate the rover a little and schedule the next rotation."""
-        self.rover.right(5)
-        self.after(50, self.animate_rover)
-
-
-def circle_points(cx, cy, r, steps=20):
-    pts = []
-    for i in range(steps):
-        angle = 2 * math.pi * i / steps
-        x = cx + r * math.cos(angle)
-        y = cy + r * math.sin(angle)
-        pts.append((x, y))
-    return pts
-
 
 # Finish Screen
 class FinishScreen(tk.Frame):
@@ -686,6 +600,7 @@ class FinishScreen(tk.Frame):
         view_stats_button.grid(row=0, column=1, padx=10, pady=10)
 
 
+# Post run metric Display Screen
 class MetricDisplay(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -809,16 +724,153 @@ class MetricDisplay(tk.Frame):
         back_button.pack(pady=20)
 
 
-# History Screen from csv
+# # History Screen from csv
+# class HistoryScreen(tk.Frame):
+#     def __init__(self, parent, controller):
+#         super().__init__(parent, bg="#011936")
+#         self.controller = controller
+
+#         label = tk.Label(
+#             self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
+#         )
+#         label.pack(pady=20)
+
+#         back_button = tk.Button(
+#             self,
+#             text="Back",
+#             font=("Roboto", 20),
+#             command=lambda: controller.show_frame("MainMenuScreen"),
+#         )
+#         back_button.pack(side="bottom", pady=20)
+
+#         history_ls = read_history()
+#         last_ten = []
+
+#         if len(history_ls) <= 10:
+#             last_ten = history_ls
+#         else:
+#             last_ten = history_ls[(len(history_ls) - 11) : len(history_ls)]
+
+#         # j = 10
+#         for i in range(1, len(last_ten)):
+
+#             t = ToggledFrame(
+#                 self,
+#                 text="%s - %s"
+#                 % (last_ten[len(last_ten) - i][2], last_ten[len(last_ten) - i][3]),
+#                 relief="raised",
+#                 borderwidth=1,
+#             )
+#             t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
+
+#             label = ttk.Label(
+#                 t.sub_frame,
+#                 text="Start",
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+#             cont = ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (last_ten[len(last_ten) - i][0]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
+
+#             label = ttk.Label(
+#                 t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
+#             )
+#             label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+#             cont = ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (last_ten[len(last_ten) - i][1]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
+
+#             label = ttk.Label(
+#                 t.sub_frame,
+#                 text="Distance",
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+#             cont = ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (last_ten[len(last_ten) - i][4]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
+
+#             label = ttk.Label(
+#                 t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
+#             )
+#             label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
+#             cont = ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (last_ten[len(last_ten) - i][5]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
+
+#             label = ttk.Label(
+#                 t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
+#             )
+#             label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
+#             cont = ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (last_ten[len(last_ten) - i][6]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             )
+#             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
+
+
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
         self.controller = controller
 
-        label = tk.Label(
+        title_label = tk.Label(
             self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
         )
-        label.pack(pady=20)
+        title_label.pack(pady=20)
+
+        # Create a filter frame at the top of the screen.
+        filter_frame = tk.Frame(self, bg="#011936")
+        filter_frame.pack(pady=10)
+
+        filter_label = tk.Label(
+            filter_frame,
+            text="Sort by:",
+            font=("Orbitron", 15),
+            bg="#011936",
+            fg="white",
+        )
+        filter_label.pack(side="left")
+
+        # OptionMenu for selecting the sort order
+        self.sort_var = tk.StringVar(value="Default")
+        sort_options = ["Default", "Cost Ascending", "Cost Descending"]
+        self.sort_menu = ttk.OptionMenu(
+            filter_frame,
+            self.sort_var,
+            "Default",
+            *sort_options,
+            command=self.update_history,
+        )
+        self.sort_menu.pack(side="left", padx=10)
 
         back_button = tk.Button(
             self,
@@ -828,98 +880,128 @@ class HistoryScreen(tk.Frame):
         )
         back_button.pack(side="bottom", pady=20)
 
-        history_ls = read_history()
-        last_ten = []
+        # Create a container frame to hold the history entries.
+        self.history_container = tk.Frame(self, bg="#011936")
+        self.history_container.pack(fill="both", expand=True)
 
+        # Initial display
+        self.update_history()
+
+    def update_history(self, *args):
+        # Clear existing history entries from the container.
+        for widget in self.history_container.winfo_children():
+            widget.destroy()
+
+        history_ls = read_history()
+
+        # Skip the header row if it exists (assuming first cell is "startLocation")
+        if history_ls and history_ls[0][0].strip().lower() == "startlocation":
+            history_ls = history_ls[1:]
+
+        # Apply sorting if needed.
+        if self.sort_var.get() == "Cost Ascending":
+            try:
+                history_ls.sort(key=lambda x: float(x[6]))
+            except Exception as e:
+                print("Error sorting ascending by cost:", e)
+        elif self.sort_var.get() == "Cost Descending":
+            try:
+                history_ls.sort(key=lambda x: float(x[6]), reverse=True)
+            except Exception as e:
+                print("Error sorting descending by cost:", e)
+
+        # Get the last 10 entries.
         if len(history_ls) <= 10:
             last_ten = history_ls
         else:
-            last_ten = history_ls[(len(history_ls) - 11) : len(history_ls)]
+            last_ten = history_ls[-10:]
 
-        # j = 10
-        for i in range(1, len(last_ten)):
-
+        # Reverse the list if you want the most recent entry at the top.
+        for entry in reversed(last_ten):
+            # Create a ToggledFrame for each entry.
             t = ToggledFrame(
-                self,
-                text="%s - %s"
-                % (last_ten[len(last_ten) - i][2], last_ten[len(last_ten) - i][3]),
+                self.history_container,
+                text="%s - %s" % (entry[2], entry[3]),
                 relief="raised",
                 borderwidth=1,
             )
-            t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
+            t.pack(fill="x", expand=True, pady=2, padx=2, anchor="n")
 
-            label = ttk.Label(
+            # Add labels for each field.
+            ttk.Label(
                 t.sub_frame,
                 text="Start",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(
+            ).grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+            ttk.Label(
                 t.sub_frame,
-                text="%s" % (last_ten[len(last_ten) - i][0]),
+                text="%s" % (entry[0]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
+            ).grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(
-                t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
-            )
-            label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(
+            ttk.Label(
                 t.sub_frame,
-                text="%s" % (last_ten[len(last_ten) - i][1]),
+                text="End",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
+            ).grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+            ttk.Label(
+                t.sub_frame,
+                text="%s" % (entry[1]),
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            ).grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(
+            ttk.Label(
                 t.sub_frame,
                 text="Distance",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(
+            ).grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+            ttk.Label(
                 t.sub_frame,
-                text="%s" % (last_ten[len(last_ten) - i][4]),
+                text="%s" % (entry[4]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
+            ).grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(
-                t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
-            )
-            label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(
+            ttk.Label(
                 t.sub_frame,
-                text="%s" % (last_ten[len(last_ten) - i][5]),
+                text="Time",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
+            ).grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
+            ttk.Label(
+                t.sub_frame,
+                text="%s" % (entry[5]),
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            ).grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(
-                t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
-            )
-            label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(
+            ttk.Label(
                 t.sub_frame,
-                text="%s" % (last_ten[len(last_ten) - i][6]),
+                text="Cost",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            )
-            cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
+            ).grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
+            ttk.Label(
+                t.sub_frame,
+                text="%s" % (entry[6]),
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            ).grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
 
 if __name__ == "__main__":
