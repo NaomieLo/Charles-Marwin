@@ -142,8 +142,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -178,19 +178,50 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        for F in (
-            WelcomeScreen,
-            MainMenuScreen,
-            SelectionScreen,
-            SpawnScreen,
-            DummyPage,
-            FinishScreen,
-            HistoryScreen,
+        # for F in (
+        #     WelcomeScreen,
+        #     MainMenuScreen,
+        #     SelectionScreen,
+        #     SpawnScreen,
+        #     DummyPage,
+        #     FinishScreen,
+        #     HistoryScreen,
+        # # ):
+        #     page_name = F.__name__
+        #     if page_name == "WelcomeScreen":
+        #         frame = F(
+        #             parent=self.container,
+        #             controller=self,
+        #             bg_image=self.welcome_bg,
+        #             logo_image=self.logo_img,
+        #         )
+        #     elif page_name == "MainMenuScreen":
+        #         frame = F(
+        #             parent=self.container, controller=self, logo_image=self.logo_img
+        #         )
+        #     else:
+        #         frame = F(parent=self.container, controller=self)
+        #     self.frames[page_name] = frame
+        #     frame.grid(row=0, column=0, sticky="nsew")
+
+        # self.show_frame("WelcomeScreen")
+
+        self.frames = {}
+        # for F in (
+        #     # WelcomeScreen,
+        #     # MainMenuScreen,
+        #     # SelectionScreen,
+        #     # SpawnScreen,
+        #     # DummyPage,
+        #     # FinishScreen,
+        #     # MetricDisplay,
+        #     HistoryScreen
         # ):
+        for F in [HistoryScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
-                    parent=self.container,
+                    parent=self.container,  # change here
                     controller=self,
                     bg_image=self.welcome_bg,
                     logo_image=self.logo_img,
@@ -204,8 +235,8 @@ class App(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
-
+        # self.show_frame("WelcomeScreen")
+        self.show_frame("HistoryScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
@@ -840,9 +871,11 @@ class HistoryScreen(tk.Frame):
         sort_menu.pack(side="left")
         sort_menu.bind("<<ComboboxSelected>>", self.on_sort_change)
 
+        # Container Frame for History List Items
         self.history_container = tk.Frame(self, bg="#011936")
         self.history_container.pack(fill="both", expand=True)
 
+        # Back Button
         back_button = tk.Button(
             self,
             text="Back",
@@ -851,6 +884,7 @@ class HistoryScreen(tk.Frame):
         )
         back_button.pack(side="bottom", pady=20)
 
+        # Load History Data
         self.history_ls = read_history()
         self.update_history_list()
 
@@ -869,15 +903,17 @@ class HistoryScreen(tk.Frame):
         else:
             last_ten = self.history_ls[-10:]
 
-        # Sort the records by cost (index 6)
+        # Sort the records by cost (index 6) based on the selected sort order.
+        # Convert the cost to int for proper numerical sorting.
         sort_order = self.sort_var.get()
         if sort_order == "Cost Ascending":
             sorted_history = sorted(last_ten, key=lambda x: int(x[6]))
-        else:
+        else:  # Cost Descending
             sorted_history = sorted(last_ten, key=lambda x: int(x[6]), reverse=True)
 
+        # Create and pack a ToggledFrame for each record
         for record in sorted_history:
-
+            # For the header text, use the robot and ai fields (index 2 and 3)
             t = ToggledFrame(
                 self.history_container,
                 text="%s - %s" % (record[2], record[3]),
