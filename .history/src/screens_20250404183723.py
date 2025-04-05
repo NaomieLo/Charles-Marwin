@@ -138,8 +138,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        # self.robot = Robot("Default", "None")
-        # self.robot_ui = UI()
+        self.robot = Robot("Default", "None")
+        self.robot_ui = UI()
 
         container = tk.Frame(self)
         container.pack(side="top", fill="both", expand=True)
@@ -172,17 +172,17 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        # for F in (
-        #     # WelcomeScreen,
-        #     # MainMenuScreen,
-        #     # SelectionScreen,
-        #     # SpawnScreen,
-        #     # DummyPage,
-        #     # FinishScreen,
-        #     # MetricDisplay,
-        #     HistoryScreen
-        # ):
-        for F in [HistoryScreen]:
+        for F in (
+            WelcomeScreen,
+            MainMenuScreen,
+            SelectionScreen,
+            SpawnScreen,
+            DummyPage,
+            FinishScreen,
+            MetricDisplay,
+            HistoryScreen,
+        ):
+
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
@@ -626,113 +626,53 @@ class MetricDisplay(tk.Frame):
 #         super().__init__(parent, bg="#011936")
 #         self.controller = controller
 
-#         label = tk.Label(
-#             self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
-#         )
+#         label = tk.Label(self, text="History", font=("Orbitron", 24), bg="#011936", fg="white")
 #         label.pack(pady=20)
 
-#         back_button = tk.Button(
-#             self,
-#             text="Back",
-#             font=("Roboto", 20),
-#             command=lambda: controller.show_frame("MainMenuScreen"),
-#         )
+#         back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
 #         back_button.pack(side="bottom", pady=20)
 
 #         history_ls = read_history()
 #         last_ten = []
 
-#         if len(history_ls) <= 10:
+#         if (len(history_ls) <= 10):
 #             last_ten = history_ls
 #         else:
-#             last_ten = history_ls[(len(history_ls) - 11) : len(history_ls)]
+#             last_ten = history_ls[(len(history_ls)-11):len(history_ls)]
 
-#         # j = 10
-#         for i in range(1, len(last_ten)):
+#         #j = 10
+#         for i in range(1,len(last_ten)):
 
-#             t = ToggledFrame(
-#                 self,
-#                 text="%s - %s"
-#                 % (last_ten[len(last_ten) - i][2], last_ten[len(last_ten) - i][3]),
-#                 relief="raised",
-#                 borderwidth=1,
-#             )
+#             t = ToggledFrame(self, text="%s - %s"%(last_ten[len(last_ten)-i][2], last_ten[len(last_ten)-i][3]), relief="raised", borderwidth=1)
 #             t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
 
-#             label = ttk.Label(
-#                 t.sub_frame,
-#                 text="Start",
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             label = ttk.Label(t.sub_frame, text="Start", font=("Orbitron", 15), borderwidth=0, width=20)
 #             label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][0]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][0]), font=("Orbitron", 15), borderwidth=0, width=20)
 #             cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
-#             label = ttk.Label(
-#                 t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
-#             )
+#             label = ttk.Label(t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20)
 #             label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][1]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][1]), font=("Orbitron", 15), borderwidth=0, width=20)
 #             cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
 
-#             label = ttk.Label(
-#                 t.sub_frame,
-#                 text="Distance",
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             label = ttk.Label(t.sub_frame, text="Distance", font=("Orbitron", 15), borderwidth=0, width=20)
 #             label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][4]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][4]), font=("Orbitron", 15), borderwidth=0, width=20)
 #             cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
-#             label = ttk.Label(
-#                 t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
-#             )
+#             label = ttk.Label(t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20)
 #             label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][5]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][5]), font=("Orbitron", 15), borderwidth=0, width=20)
 #             cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
-#             label = ttk.Label(
-#                 t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
-#             )
+#             label = ttk.Label(t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20)
 #             label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][6]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
+#             cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][6]), font=("Orbitron", 15), borderwidth=0, width=20)
 #             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
 
+# History Screen from csv with cost filter
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -790,10 +730,6 @@ class HistoryScreen(tk.Frame):
 
         history_ls = read_history()
 
-        # Skip the header row if it exists (assuming first cell is "startLocation")
-        if history_ls and history_ls[0][0].strip().lower() == "startlocation":
-            history_ls = history_ls[1:]
-
         # Apply sorting if needed.
         if self.sort_var.get() == "Cost Ascending":
             try:
@@ -821,7 +757,7 @@ class HistoryScreen(tk.Frame):
                 relief="raised",
                 borderwidth=1,
             )
-            t.pack(fill="x", expand=True, pady=2, padx=2, anchor="n")
+            t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
 
             # Add labels for each field.
             ttk.Label(
@@ -840,11 +776,7 @@ class HistoryScreen(tk.Frame):
             ).grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
             ttk.Label(
-                t.sub_frame,
-                text="End",
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
+                t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
             ).grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
             ttk.Label(
                 t.sub_frame,
@@ -870,11 +802,7 @@ class HistoryScreen(tk.Frame):
             ).grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
             ttk.Label(
-                t.sub_frame,
-                text="Time",
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
+                t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
             ).grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
             ttk.Label(
                 t.sub_frame,
@@ -885,11 +813,7 @@ class HistoryScreen(tk.Frame):
             ).grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
             ttk.Label(
-                t.sub_frame,
-                text="Cost",
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
+                t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
             ).grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
             ttk.Label(
                 t.sub_frame,

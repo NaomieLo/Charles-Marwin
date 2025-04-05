@@ -733,6 +733,7 @@ class MetricDisplay(tk.Frame):
 #             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
 
+# History Screen from csv with cost filter
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
@@ -790,10 +791,6 @@ class HistoryScreen(tk.Frame):
 
         history_ls = read_history()
 
-        # Skip the header row if it exists (assuming first cell is "startLocation")
-        if history_ls and history_ls[0][0].strip().lower() == "startlocation":
-            history_ls = history_ls[1:]
-
         # Apply sorting if needed.
         if self.sort_var.get() == "Cost Ascending":
             try:
@@ -821,7 +818,7 @@ class HistoryScreen(tk.Frame):
                 relief="raised",
                 borderwidth=1,
             )
-            t.pack(fill="x", expand=True, pady=2, padx=2, anchor="n")
+            t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
 
             # Add labels for each field.
             ttk.Label(
@@ -840,11 +837,7 @@ class HistoryScreen(tk.Frame):
             ).grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
             ttk.Label(
-                t.sub_frame,
-                text="End",
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
+                t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
             ).grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
             ttk.Label(
                 t.sub_frame,
@@ -870,11 +863,7 @@ class HistoryScreen(tk.Frame):
             ).grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
             ttk.Label(
-                t.sub_frame,
-                text="Time",
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
+                t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
             ).grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
             ttk.Label(
                 t.sub_frame,
@@ -885,11 +874,7 @@ class HistoryScreen(tk.Frame):
             ).grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
             ttk.Label(
-                t.sub_frame,
-                text="Cost",
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
+                t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
             ).grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
             ttk.Label(
                 t.sub_frame,

@@ -620,153 +620,16 @@ class MetricDisplay(tk.Frame):
         back_button.pack(pady=20)
 
 
-# # History Screen from csv
-# class HistoryScreen(tk.Frame):
-#     def __init__(self, parent, controller):
-#         super().__init__(parent, bg="#011936")
-#         self.controller = controller
-
-#         label = tk.Label(
-#             self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
-#         )
-#         label.pack(pady=20)
-
-#         back_button = tk.Button(
-#             self,
-#             text="Back",
-#             font=("Roboto", 20),
-#             command=lambda: controller.show_frame("MainMenuScreen"),
-#         )
-#         back_button.pack(side="bottom", pady=20)
-
-#         history_ls = read_history()
-#         last_ten = []
-
-#         if len(history_ls) <= 10:
-#             last_ten = history_ls
-#         else:
-#             last_ten = history_ls[(len(history_ls) - 11) : len(history_ls)]
-
-#         # j = 10
-#         for i in range(1, len(last_ten)):
-
-#             t = ToggledFrame(
-#                 self,
-#                 text="%s - %s"
-#                 % (last_ten[len(last_ten) - i][2], last_ten[len(last_ten) - i][3]),
-#                 relief="raised",
-#                 borderwidth=1,
-#             )
-#             t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
-
-#             label = ttk.Label(
-#                 t.sub_frame,
-#                 text="Start",
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][0]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
-
-#             label = ttk.Label(
-#                 t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
-#             )
-#             label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][1]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
-
-#             label = ttk.Label(
-#                 t.sub_frame,
-#                 text="Distance",
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][4]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
-
-#             label = ttk.Label(
-#                 t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
-#             )
-#             label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][5]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
-
-#             label = ttk.Label(
-#                 t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
-#             )
-#             label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
-#             cont = ttk.Label(
-#                 t.sub_frame,
-#                 text="%s" % (last_ten[len(last_ten) - i][6]),
-#                 font=("Orbitron", 15),
-#                 borderwidth=0,
-#                 width=20,
-#             )
-#             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
-
-
+# History Screen from csv
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
         self.controller = controller
 
-        title_label = tk.Label(
+        label = tk.Label(
             self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
         )
-        title_label.pack(pady=20)
-
-        # Create a filter frame at the top of the screen.
-        filter_frame = tk.Frame(self, bg="#011936")
-        filter_frame.pack(pady=10)
-
-        filter_label = tk.Label(
-            filter_frame,
-            text="Sort by:",
-            font=("Orbitron", 15),
-            bg="#011936",
-            fg="white",
-        )
-        filter_label.pack(side="left")
-
-        # OptionMenu for selecting the sort order
-        self.sort_var = tk.StringVar(value="Default")
-        sort_options = ["Default", "Cost Ascending", "Cost Descending"]
-        self.sort_menu = ttk.OptionMenu(
-            filter_frame,
-            self.sort_var,
-            "Default",
-            *sort_options,
-            command=self.update_history
-        )
-        self.sort_menu.pack(side="left", padx=10)
+        label.pack(pady=20)
 
         back_button = tk.Button(
             self,
@@ -776,128 +639,250 @@ class HistoryScreen(tk.Frame):
         )
         back_button.pack(side="bottom", pady=20)
 
-        # Create a container frame to hold the history entries.
-        self.history_container = tk.Frame(self, bg="#011936")
-        self.history_container.pack(fill="both", expand=True)
-
-        # Initial display
-        self.update_history()
-
-    def update_history(self, *args):
-        # Clear existing history entries from the container.
-        for widget in self.history_container.winfo_children():
-            widget.destroy()
-
         history_ls = read_history()
+        last_ten = []
 
-        # Skip the header row if it exists (assuming first cell is "startLocation")
-        if history_ls and history_ls[0][0].strip().lower() == "startlocation":
-            history_ls = history_ls[1:]
-
-        # Apply sorting if needed.
-        if self.sort_var.get() == "Cost Ascending":
-            try:
-                history_ls.sort(key=lambda x: float(x[6]))
-            except Exception as e:
-                print("Error sorting ascending by cost:", e)
-        elif self.sort_var.get() == "Cost Descending":
-            try:
-                history_ls.sort(key=lambda x: float(x[6]), reverse=True)
-            except Exception as e:
-                print("Error sorting descending by cost:", e)
-
-        # Get the last 10 entries.
         if len(history_ls) <= 10:
             last_ten = history_ls
         else:
-            last_ten = history_ls[-10:]
+            last_ten = history_ls[(len(history_ls) - 11) : len(history_ls)]
 
-        # Reverse the list if you want the most recent entry at the top.
-        for entry in reversed(last_ten):
-            # Create a ToggledFrame for each entry.
+        # j = 10
+        for i in range(1, len(last_ten)):
+
             t = ToggledFrame(
-                self.history_container,
-                text="%s - %s" % (entry[2], entry[3]),
+                self,
+                text="%s - %s"
+                % (last_ten[len(last_ten) - i][2], last_ten[len(last_ten) - i][3]),
                 relief="raised",
                 borderwidth=1,
             )
-            t.pack(fill="x", expand=True, pady=2, padx=2, anchor="n")
+            t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
 
-            # Add labels for each field.
-            ttk.Label(
+            label = ttk.Label(
                 t.sub_frame,
                 text="Start",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
-            ttk.Label(
+            )
+            label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(
                 t.sub_frame,
-                text="%s" % (entry[0]),
+                text="%s" % (last_ten[len(last_ten) - i][0]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
+            )
+            cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
-            ttk.Label(
+            label = ttk.Label(
+                t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
+            )
+            label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(
                 t.sub_frame,
-                text="End",
+                text="%s" % (last_ten[len(last_ten) - i][1]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
-            ttk.Label(
-                t.sub_frame,
-                text="%s" % (entry[1]),
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
-            ).grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
+            )
+            cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
 
-            ttk.Label(
+            label = ttk.Label(
                 t.sub_frame,
                 text="Distance",
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
-            ttk.Label(
+            )
+            label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(
                 t.sub_frame,
-                text="%s" % (entry[4]),
+                text="%s" % (last_ten[len(last_ten) - i][4]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
+            )
+            cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
-            ttk.Label(
+            label = ttk.Label(
+                t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
+            )
+            label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(
                 t.sub_frame,
-                text="Time",
+                text="%s" % (last_ten[len(last_ten) - i][5]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
-            ttk.Label(
-                t.sub_frame,
-                text="%s" % (entry[5]),
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
-            ).grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
+            )
+            cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
-            ttk.Label(
+            label = ttk.Label(
+                t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
+            )
+            label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
+            cont = ttk.Label(
                 t.sub_frame,
-                text="Cost",
+                text="%s" % (last_ten[len(last_ten) - i][6]),
                 font=("Orbitron", 15),
                 borderwidth=0,
                 width=20,
-            ).grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
-            ttk.Label(
-                t.sub_frame,
-                text="%s" % (entry[6]),
-                font=("Orbitron", 15),
-                borderwidth=0,
-                width=20,
-            ).grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
+            )
+            cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
+
+
+# # History Screen from csv with cost filter
+# class HistoryScreen(tk.Frame):
+#     def __init__(self, parent, controller):
+#         super().__init__(parent, bg="#011936")
+#         self.controller = controller
+
+#         title_label = tk.Label(
+#             self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
+#         )
+#         title_label.pack(pady=20)
+
+#         # Create a filter frame at the top of the screen.
+#         filter_frame = tk.Frame(self, bg="#011936")
+#         filter_frame.pack(pady=10)
+
+#         filter_label = tk.Label(
+#             filter_frame,
+#             text="Sort by:",
+#             font=("Orbitron", 15),
+#             bg="#011936",
+#             fg="white",
+#         )
+#         filter_label.pack(side="left")
+
+#         # OptionMenu for selecting the sort order
+#         self.sort_var = tk.StringVar(value="Default")
+#         sort_options = ["Default", "Cost Ascending", "Cost Descending"]
+#         self.sort_menu = ttk.OptionMenu(
+#             filter_frame,
+#             self.sort_var,
+#             "Default",
+#             *sort_options,
+#             command=self.update_history
+#         )
+#         self.sort_menu.pack(side="left", padx=10)
+
+#         back_button = tk.Button(
+#             self,
+#             text="Back",
+#             font=("Roboto", 20),
+#             command=lambda: controller.show_frame("MainMenuScreen"),
+#         )
+#         back_button.pack(side="bottom", pady=20)
+
+#         # Create a container frame to hold the history entries.
+#         self.history_container = tk.Frame(self, bg="#011936")
+#         self.history_container.pack(fill="both", expand=True)
+
+#         # Initial display
+#         self.update_history()
+
+#     def update_history(self, *args):
+#         # Clear existing history entries from the container.
+#         for widget in self.history_container.winfo_children():
+#             widget.destroy()
+
+#         history_ls = read_history()
+
+#         # Apply sorting if needed.
+#         if self.sort_var.get() == "Cost Ascending":
+#             try:
+#                 history_ls.sort(key=lambda x: float(x[6]))
+#             except Exception as e:
+#                 print("Error sorting ascending by cost:", e)
+#         elif self.sort_var.get() == "Cost Descending":
+#             try:
+#                 history_ls.sort(key=lambda x: float(x[6]), reverse=True)
+#             except Exception as e:
+#                 print("Error sorting descending by cost:", e)
+
+#         # Get the last 10 entries.
+#         if len(history_ls) <= 10:
+#             last_ten = history_ls
+#         else:
+#             last_ten = history_ls[-10:]
+
+#         # Reverse the list if you want the most recent entry at the top.
+#         for entry in reversed(last_ten):
+#             # Create a ToggledFrame for each entry.
+#             t = ToggledFrame(
+#                 self.history_container,
+#                 text="%s - %s" % (entry[2], entry[3]),
+#                 relief="raised",
+#                 borderwidth=1,
+#             )
+#             t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
+
+#             # Add labels for each field.
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="Start",
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (entry[0]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
+
+#             ttk.Label(
+#                 t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
+#             ).grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (entry[1]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
+
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="Distance",
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (entry[4]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
+
+#             ttk.Label(
+#                 t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
+#             ).grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (entry[5]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
+
+#             ttk.Label(
+#                 t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
+#             ).grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
+#             ttk.Label(
+#                 t.sub_frame,
+#                 text="%s" % (entry[6]),
+#                 font=("Orbitron", 15),
+#                 borderwidth=0,
+#                 width=20,
+#             ).grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
 
 if __name__ == "__main__":
