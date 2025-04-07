@@ -9,8 +9,8 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/curiosity/tex_03.png
-bump tex_03_n_jpg.png
+map_Kd models/curiosity/tex_03.jpg
+bump tex_03_n_jpg.jpg
 
 newmtl mat1
 Ns 500
@@ -21,7 +21,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/curiosity/tex_02_jpg.png
+map_Kd models/curiosity/tex_02_jpg.jpg
 
 newmtl mat2
 Ns 500
@@ -32,7 +32,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/curiosity/tex_01_jpg.png
+map_Kd models/curiosity/tex_01_jpg.jpg
 
 newmtl mat3
 Ns 250
@@ -43,7 +43,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/curiosity/parts_AO_jpg.png
+map_Kd models/curiosity/parts_AO_jpg.jpg
 
 newmtl mat4
 Ns 300.00001
@@ -54,7 +54,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/curiosity/tex_03.png
+map_Kd models/curiosity/tex_03.jpg
 
 newmtl mat5
 Ns 500
@@ -65,7 +65,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/curiosity/tex_05_jpg.png
+map_Kd models/curiosity/tex_05_jpg.jpg
 
 newmtl mat6
 Ns 250
@@ -76,7 +76,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 3
-map_Kd models/curiosity/tex_04_jpg.png
+map_Kd models/curiosity/tex_04_jpg.jpg
 
 newmtl mat7
 Ns 0
@@ -87,7 +87,7 @@ Ke 0.0 0.0 0.0
 Ni 1.0
 d 1
 illum 2
-map_Kd models/curiosity/tex_03.png
+map_Kd models/curiosity/tex_03.jpg
 
 newmtl mat8
 Ns 500
