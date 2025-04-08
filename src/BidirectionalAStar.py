@@ -128,3 +128,6 @@ class BidirectionalAStar(PathFinderBase):
                     heapq.heappush(primary_search['open_set'], (f_score, neighbor))
         
         return None
+    
+    def __str__(self):
+        return "Bidirectional AStar Brain"

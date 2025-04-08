@@ -105,12 +105,12 @@ class UI():
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
         # Initialize GL Context
-        window = glfw.create_window(800, 600, "Charles Marwin", None, None)
+        window = glfw.create_window(1000, 800, "Charles Marwin", None, None)
         glfw.make_context_current(window)
         glViewport(0,0,800,600)
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.0, 0.0, 0.0, 1.0)
-        glfw.set_cursor_pos_callback(window,self.mouse_callback)
+        #glfw.set_cursor_pos_callback(window,self.mouse_callback)
 
         # Compile Shader
         self.shader = shader.Shader("src/vertex_shader.glsl", "src/fragment_shader.glsl")
@@ -186,5 +186,7 @@ class UI():
 
         glfw.terminate()
 
-# ui_instance = UI()
-# ui_instance.main()
+if __name__ == "__main__":
+    ui_instance = UI()
+    ui_instance.set_mesh("src/models/perseverance/ImageToStl.com_25042_perseverance.obj")
+    ui_instance.main()

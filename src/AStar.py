@@ -68,3 +68,6 @@ class AStar(PathFinderBase):
                 return self._reconstruct_path(path_history, curr)#partial path
         
         return None  # No path found
+    
+    def __str__(self):
+        return "AStar Brain"

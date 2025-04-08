@@ -49,27 +49,13 @@ class Robot:
         elif (brain == "Multiresolution Pathfinder"):
             self.Brain = MultiResolutionPathFinder(None)
 
-        elevation_map, affine_transform = self._load_map()
-        self.Sensor = Sensor(elevation_map,affine_transform)
+        self.Sensor = None
         self.Path = []
         self.Motor = Motors(None, None)
         self.initPosition = (0,0)
         self.endPosition = (0,0)
         self.curr_idx=0
 
-    def _load_map(self):
-        """Load the elevation map from a predefined file path."""
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(base_dir)
-        dem_path = os.path.join(parent_dir, 'data/MarsMGSMOLA_MAP2_EQUI.tif')
-        
-        with rasterio.open(dem_path) as data:
-            elevation_map = data.read(1)
-            crs = data.crs
-            affine_transform = data.transform
-            self.affine_transform = affine_transform
-            self.transform=transformations.setup_transformer(crs)
-        return elevation_map, affine_transform
         
     def compute_path_cost(self) -> int:
         i = 0

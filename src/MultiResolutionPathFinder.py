@@ -84,3 +84,6 @@ class MultiResolutionPathFinder(PathFinderBase):
             coarse_path = fine_path
 
         return coarse_path
+    
+    def __str__(self):
+        return "Multiresolution Brain"
