@@ -1,8 +1,8 @@
-import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from PathFinderBase import PathFinderBase
 from BidirectionalAStar import BidirectionalAStar
+from cv2 import pyrDown
 
 class MultiResolutionPathFinder(PathFinderBase):
     
@@ -84,3 +84,6 @@ class MultiResolutionPathFinder(PathFinderBase):
             coarse_path = fine_path
 
         return coarse_path
+    
+    def __str__(self):
+        return "Multiresolution Brain"

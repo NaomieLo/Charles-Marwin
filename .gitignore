@@ -1,2 +1,6 @@
 .DS_Store
 src/__pycache__/
+data/MarsMGSMOLA_MAP2_EQUI.tif
+token.json
+venv/
+test/motor_test/__pycache__/
