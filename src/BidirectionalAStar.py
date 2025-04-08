@@ -19,7 +19,7 @@ class BidirectionalAStar(PathFinderBase):
 
     def find_path(self, start, goal,max_iterations=None,call_from_gaussian=False):
         if not call_from_gaussian:
-            start_row, start_col, end_row, end_col = self.GeoCoord2RowCol(start, goal)
+            start_row, start_col, end_row, end_col = start, goal
         else:
             #already in row col form
             start_row, start_col=start

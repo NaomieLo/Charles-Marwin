@@ -22,7 +22,7 @@ class MultiResolutionPathFinder(PathFinderBase):
         pyramid = [elevation_map]
 
         for _ in range(levels):
-            elevation_map = pyrDown(elevation_map)  # Downsample
+            elevation_map = cv2.pyrDown(elevation_map)  # Downsample
             pyramid.append(elevation_map)
 
         return pyramid
@@ -38,7 +38,7 @@ class MultiResolutionPathFinder(PathFinderBase):
             return self.bidirectional_astar.find_path(start, goal)
 
         # Convert coordinates to row/col in full-resolution map
-        start_row, start_col, goal_row, goal_col = self.GeoCoord2RowCol(start, goal)
+        start_row, start_col, goal_row, goal_col = start, goal
         #print("start row,col= ", (start_row, start_col))
         #print("end row,col= ", (goal_row, goal_col))
         # Start at the lowest resolution (coarsest level)
