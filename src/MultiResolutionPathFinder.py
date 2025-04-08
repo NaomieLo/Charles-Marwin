@@ -38,7 +38,7 @@ class MultiResolutionPathFinder(PathFinderBase):
             return self.bidirectional_astar.find_path(start, goal)
 
         # Convert coordinates to row/col in full-resolution map
-        start_row, start_col, goal_row, goal_col = self.GeoCoord2RowCol(start, goal)
+        start_row, start_col, goal_row, goal_col = start, goal
         #print("start row,col= ", (start_row, start_col))
         #print("end row,col= ", (goal_row, goal_col))
         # Start at the lowest resolution (coarsest level)
