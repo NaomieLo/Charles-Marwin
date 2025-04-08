@@ -186,7 +186,7 @@ class App(tk.Tk):
             DummyPage,
             FinishScreen,
             HistoryScreen,
-        # ):
+        ):
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
