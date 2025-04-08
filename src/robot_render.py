@@ -15,7 +15,7 @@ null_ptr = ctypes.c_void_p
 
 class UI():
     def __init__(self):
-        self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
+        self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None; self.robot_roll = None
 
         self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None
 
@@ -48,19 +48,29 @@ class UI():
     
     def turn_counterclockwise(self):
         self.robot_ang += self.robot_speed * 30.0
+
+    def auto_roll(self, x_curr, x_next, y_curr, y_next):
+        x_diff = x_next - x_curr
+        y_diff = y_next - y_curr
+        hyp = math.sqrt(x_diff**2 + y_diff**2)
+        self.robot_roll = math.asin(y_diff/hyp)
     
     def process_input(self, window):
         self.robot_speed = 2.5 * self.delta_time
         if (glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
             glfw.set_window_should_close(window,True)
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
-             self.move_forward()
+            self.move_forward()
         if (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS):
-             self.move_backward()
+            self.move_backward()
         if (glfw.get_key(window, glfw.KEY_A) == glfw.PRESS):
-             self.turn_counterclockwise()
+            self.turn_counterclockwise()
         if (glfw.get_key(window, glfw.KEY_D) == glfw.PRESS):
-             self.turn_clockwise()
+            self.turn_clockwise()
+        # testing
+        if (glfw.get_key(window, glfw.KEY_SPACE) == glfw.PRESS):
+            self.auto_roll(0, self.robot_speed, self.robot_pos.y, self.robot_pos.y + 1)
+        else: self.auto_roll(0,1,0,0)
         
         direction = glm.vec3(0.0)
         direction.x = math.sin(glm.radians(self.robot_ang))
@@ -120,6 +130,7 @@ class UI():
         self.cam_pos = glm.vec3(0.0, 2.0, 6.0)
         self.robot_pos = glm.vec3(0.0, 0.0, 0.0)
         self.robot_ang = 180.0
+        self.robot_roll = 0
 
         robot = mesh.Mesh(self.robot_mesh)
         terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
@@ -162,6 +173,7 @@ class UI():
 
           rmodel = glm.rotate(glm.translate(glm.mat4(1), self.robot_pos), glm.radians(self.robot_ang), glm.vec3(0.0, 1.0, 0.0))
           rmodel = glm.scale(rmodel, glm.vec3(0.3, 0.3, 0.3))
+          rmodel = glm.rotate(rmodel, glm.radians(self.robot_roll), glm.vec3(-1.0, 0.0, 0.0))
 
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
           glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
