@@ -197,6 +197,9 @@ def update_history():
         print(f"An error occurred: {error}")
 
 
+data = input_data((32, 232), (4323, 232), "robot1", "ai2", 120, 60, 1)
+write_history(data)
+
 # print(read_history())
 # update_history()
 # authenticate()

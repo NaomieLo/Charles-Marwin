@@ -142,8 +142,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -381,7 +381,6 @@ class SelectionScreen(tk.Frame):
             controller.robot = Robot(
                 scroller1.items[scroller1.index], scroller2.items[scroller2.index]
             )
-            controller.robot.Sensor = controller.robot.Brain.sensor
             controller.robot_ui.set_mesh(controller.robot.Mesh)
 
         btn_next = tk.Button(
@@ -764,7 +763,7 @@ class MetricDisplay(tk.Frame):
             ("Start Location:", str(robot.initPosition)),
             ("End Location:", str(robot.endPosition)),
             ("Robot:", robot.Name),
-            ("AI:", str(robot.Brain)),
+            ("AI:", robot.brain_name),
             ("Distance:", f"{distance:.2f}"),
             ("Time:", elapsed_time_str),
             ("Cost:", str(robot.compute_path_cost())),

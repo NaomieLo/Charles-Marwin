@@ -142,8 +142,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -178,19 +178,50 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        for F in (
-            WelcomeScreen,
-            MainMenuScreen,
-            SelectionScreen,
-            SpawnScreen,
-            DummyPage,
-            FinishScreen,
-            HistoryScreen,
+        # for F in (
+        #     WelcomeScreen,
+        #     MainMenuScreen,
+        #     SelectionScreen,
+        #     SpawnScreen,
+        #     DummyPage,
+        #     FinishScreen,
+        #     HistoryScreen,
+        # # ):
+        #     page_name = F.__name__
+        #     if page_name == "WelcomeScreen":
+        #         frame = F(
+        #             parent=self.container,
+        #             controller=self,
+        #             bg_image=self.welcome_bg,
+        #             logo_image=self.logo_img,
+        #         )
+        #     elif page_name == "MainMenuScreen":
+        #         frame = F(
+        #             parent=self.container, controller=self, logo_image=self.logo_img
+        #         )
+        #     else:
+        #         frame = F(parent=self.container, controller=self)
+        #     self.frames[page_name] = frame
+        #     frame.grid(row=0, column=0, sticky="nsew")
+
+        # self.show_frame("WelcomeScreen")
+
+        self.frames = {}
+        # for F in (
+        #     # WelcomeScreen,
+        #     # MainMenuScreen,
+        #     # SelectionScreen,
+        #     # SpawnScreen,
+        #     # DummyPage,
+        #     # FinishScreen,
+        #     # MetricDisplay,
+        #     HistoryScreen
         # ):
+        for F in [HistoryScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
-                    parent=self.container,
+                    parent=self.container,  # change here
                     controller=self,
                     bg_image=self.welcome_bg,
                     logo_image=self.logo_img,
@@ -204,8 +235,8 @@ class App(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
-
+        # self.show_frame("WelcomeScreen")
+        self.show_frame("HistoryScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
@@ -381,7 +412,6 @@ class SelectionScreen(tk.Frame):
             controller.robot = Robot(
                 scroller1.items[scroller1.index], scroller2.items[scroller2.index]
             )
-            controller.robot.Sensor = controller.robot.Brain.sensor
             controller.robot_ui.set_mesh(controller.robot.Mesh)
 
         btn_next = tk.Button(
@@ -764,7 +794,7 @@ class MetricDisplay(tk.Frame):
             ("Start Location:", str(robot.initPosition)),
             ("End Location:", str(robot.endPosition)),
             ("Robot:", robot.Name),
-            ("AI:", str(robot.Brain)),
+            ("AI:", robot.brain_name),
             ("Distance:", f"{distance:.2f}"),
             ("Time:", elapsed_time_str),
             ("Cost:", str(robot.compute_path_cost())),
