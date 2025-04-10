@@ -206,8 +206,8 @@ class PathFindingTester:
         plt.show()
 
     def run_Astar_real_map(self):
-        start = (80, 70)
-        goal = (79, 69)
+        start = (1281, 8960)
+        goal = (1490, 8960)
         astar = AStar.AStar(False)
         path = astar.find_path(start, goal)
 
@@ -222,8 +222,8 @@ class PathFindingTester:
                 self.visualize_real_map(path, astar)
 
     def run_biAstar_real_map(self):
-        start = (80, 70)
-        goal = (79, 69)
+        start = (1281, 8960)
+        goal = (1490, 8960)
         biastar = BidirectionalAStar.BidirectionalAStar(False)
         path = biastar.find_path(start, goal)
 
@@ -238,8 +238,8 @@ class PathFindingTester:
                 self.visualize_real_map(path, biastar)
 
     def run_resloution_real_map(self):
-        start = (80, 70)
-        goal = (60, 40)
+        start = (1281, 8960)
+        goal = (1490, 8960)
         m = MultiResolutionPathFinder.MultiResolutionPathFinder(False)
         path = m.find_path(start, goal)
 
@@ -410,7 +410,7 @@ if __name__ == "__main__":
     p.run_resloution_real_map()
     end_time = time.time()
     print("Running time: ", end_time - start_time)
-
+'''
     print("\n=========== Running Bidirectional A* Test ===========")
     start_time = time.time()
     p = PathFindingTester(True)
@@ -424,3 +424,4 @@ if __name__ == "__main__":
     p.run_Astar_real_map()
     end_time = time.time()
     print("Running time: ", end_time - start_time)
+'''

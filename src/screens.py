@@ -548,7 +548,7 @@ class DummyPage(tk.Frame):
                     next = robot.get_next_pos_in_path()  # get next position
                     curr = robot.Path[robot.curr_idx]
 
-                    if curr == next:
+                    if curr == robot.endPosition:
                         return True  # reach the end
 
                     cur_elevation = robot.Sensor.get_elevation_at_position(
@@ -566,7 +566,7 @@ class DummyPage(tk.Frame):
                         robot.Motor.charge_battery()  # charge until full
                         robot.Motor.start_motors()  # restart motor
 
-                    if (curr != robot.endPosition) and (
+                    if (robot.Path[-1] != robot.endPosition) and (
                         robot.curr_idx == len(robot.Path) - 1
                     ):
                         # This part is only for A* since it is toooooo slow on a large map
@@ -589,6 +589,7 @@ class DummyPage(tk.Frame):
                 return True
         except Exception as e:
             print(e)
+            robot.Motor.stop()
             self.controller.frames["FinishScreen"].label.configure(
                 text="Failed to reach the destination."
             )

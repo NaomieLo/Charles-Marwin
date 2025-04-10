@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import copy
 import matplotlib.pyplot as plt
 from PathFinderBase import PathFinderBase
 from BidirectionalAStar import BidirectionalAStar
@@ -40,6 +41,7 @@ class MultiResolutionPathFinder(PathFinderBase):
         # Convert coordinates to row/col in full-resolution map
         start_row, start_col = start
         goal_row, goal_col = goal
+        #print("Before shrink",goal)
         #print("start row,col= ", (start_row, start_col))
         #print("end row,col= ", (goal_row, goal_col))
         # Start at the lowest resolution (coarsest level)
@@ -58,7 +60,7 @@ class MultiResolutionPathFinder(PathFinderBase):
         while level > 0:
             # Scale up the coarse path points to next finer level
             scaled_path = [(r * 2, c * 2) for r, c in coarse_path]
-            
+            #print("In loop",scaled_path[-1])
             # Move to next finer level
             level -= 1
             
@@ -84,4 +86,19 @@ class MultiResolutionPathFinder(PathFinderBase):
             
             coarse_path = fine_path
 
+        # If the refined path's final node doesn't match the specified goal,
+        # refine the last segment using full-resolution A*
+        if coarse_path[-1] != goal:
+            if len(coarse_path) > 1:
+                # Compute a final segment from the second to last point to the actual goal
+                final_segment = self.bidirectional_astar.find_path(coarse_path[-1], goal)
+                if final_segment is not None:
+                    # Append the final segment, skipping the duplicate node
+                    coarse_path = coarse_path[:-1] + final_segment
+                else:
+                    # Can't reach goal
+                    coarse_path=None
+            else:
+                coarse_path[-1] = goal
+        
         return coarse_path
