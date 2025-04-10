@@ -447,8 +447,14 @@ class SpawnScreen(tk.Frame):
         def main_app_loop():
             # Set sim initial position to robot.initPosition
             controller.show_frame("DummyPage")
-            start_pos = controller.robot.initPosition
-            end_pos = controller.robot.endPosition
+            # start_pos = controller.robot.initPosition
+            # end_pos = controller.robot.endPosition
+            #TODO: REMOVE TESTING VALUES
+            controller.robot.initPosition = (1281, 8960)
+            controller.robot.endPosition = (1490, 8960)
+            start_pos = (1281, 8960)
+            end_pos = (1490, 8960)
+            #TODO: REMOVE TESTING VALUES
             controller.frames["DummyPage"].start_robot(start_pos, end_pos)
 
         # go button
@@ -501,7 +507,7 @@ class DummyPage(tk.Frame):
         end_time = timemodule.time()
 
         elapsed_time = end_time - start_time
-        self.controller.robot.elapsed_time = elapsed_time
+        self.controller.robot.elapsedTime = elapsed_time
 
         if path is not None:
             self.controller.robot.Path = path
@@ -515,6 +521,7 @@ class DummyPage(tk.Frame):
             # Move the robot to next position in scene
             self.controller.robot_ui.set_pos(c, r)
             self.controller.robot_ui.robot_pos.z = elevation
+            self.controller.robot_ui.update_frame()
         except Exception as e:
             print(e)
 
@@ -529,13 +536,15 @@ class DummyPage(tk.Frame):
             robot = self.controller.robot
             # find path
             self.robot_get_path(start, end)
-            self.controller.robot_ui.main()
+            #print(robot.Path)
+            self.controller.robot_ui.main() #TODO: ADD PARAMETERS FOR UI MAIN
 
             # start engine
             if robot.Motor.start_motors():
                 # main loop
                 iter = 1  # iteration counter for A*
                 while robot.Path[robot.curr_idx] != robot.endPosition:
+                    self.controller.robot_ui.update_frame()
                     next = robot.get_next_pos_in_path()  # get next position
                     curr = robot.Path[robot.curr_idx]
 
@@ -566,14 +575,16 @@ class DummyPage(tk.Frame):
                         if iter > 5:
                             # early termination
                             robot.Motor.stop()
+                            self.controller.robot_ui.terminate()
                             self.controller.show_frame("FinishScreen")
                             return False  # Failed to reach goal within 5 tries. 50 sec for each try
-
-                        self.robot_get_path(robot.Path[robot.curr_idx])
+                        
+                        self.robot_get_path(robot.Path[robot.curr_idx],end)
                         iter += 1
                         robot.curr_idx = 0
 
                 robot.Motor.stop()  # turn off motor
+                self.controller.robot_ui.terminate()
                 self.controller.show_frame("FinishScreen")
                 return True
         except Exception as e:
@@ -581,6 +592,7 @@ class DummyPage(tk.Frame):
             self.controller.frames["FinishScreen"].label.configure(
                 text="Failed to reach the destination."
             )
+            self.controller.robot_ui.terminate()
             self.controller.show_frame("FinishScreen")
             return False
 
@@ -755,11 +767,12 @@ class MetricDisplay(tk.Frame):
 
         distance = distance_calc(robot.initPosition, robot.endPosition)
         elapsed_time_str = (
-            f"{robot.elapsed_time:.2f} s"
+            f"{robot.elapsedTime:.2f} s"
             if hasattr(robot, "elapsed_time")
             else "0.00 s"
         )
         # stats found in path
+        #TODO: Fix time stats
         stats_data = [
             ("Start Location:", str(robot.initPosition)),
             ("End Location:", str(robot.endPosition)),

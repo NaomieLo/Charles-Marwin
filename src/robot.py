@@ -55,6 +55,7 @@ class Robot:
         self.initPosition = (0,0)
         self.endPosition = (0,0)
         self.curr_idx=0
+        self.elapsedTime = 0
 
         
     def compute_path_cost(self) -> int:
@@ -75,7 +76,7 @@ class Robot:
 
     
     def get_next_pos_in_path(self):
-        if not self.Path and self.curr_idx+1<len(self.path):
+        if self.Path != None and self.curr_idx+1<len(self.Path):
             next_pos = self.Path[self.curr_idx+1]
             return next_pos
         raise Exceptions.NoNextNode("There is no next node")
