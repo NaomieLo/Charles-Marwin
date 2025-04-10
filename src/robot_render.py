@@ -31,9 +31,11 @@ class UI():
     def set_mesh(self, path):
         self.robot_mesh = path
 
-    def set_pos(self, x, y):
+    def set_pos(self, a, b, c):
+        x = a*self.terrain.x_ratio; y = b; z = c*self.terrain.z_ratio
         self.robot_pos.x = x; self.cam_pos.x = x
-        self.robot_pos.y = y; self.cam_pos.y = y
+        self.robot_pos.y = y; self.cam_pos.y = y + 2
+        self.robot_pos.z = z; self.cam_pos.z = z + 6
 
     def move_forward(self):
         self.robot_pos += self.robot_speed * self.robot_forward
@@ -149,7 +151,7 @@ class UI():
         self.shader2.use()
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        view = glm.lookAt(self.cam_pos, self.cam_pos+self.cam_front, self.cam_up)
+        view = glm.lookAt(self.cam_pos, self.robot_pos, self.cam_up)
         #view = glm.rotate(view_pos, glm.radians(45), glm.vec3(1.0, 0.0, 0.0))
 
         glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "model"), 1, False, glm.value_ptr(self.tmodel))

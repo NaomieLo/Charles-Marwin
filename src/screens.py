@@ -518,9 +518,9 @@ class DummyPage(tk.Frame):
             r, c = self.controller.robot.get_next_pos_in_path()
             self.controller.robot.curr_idx += 1
             # Move the robot to next position in scene
-            self.controller.robot_ui.set_pos(c, r)
-            self.controller.robot_ui.robot_pos.z = elevation
-            self.controller.robot_ui.update_frame()
+            print(c, r)
+
+            self.controller.robot_ui.set_pos(c, elevation, r)
         except Exception as e:
             print(e)
 

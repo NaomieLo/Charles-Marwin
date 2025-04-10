@@ -55,8 +55,11 @@ class Terrain(object):
         verts[:, 2] -= np.mean(verts[:, 2])
 
         self.y_offset = np.max(verts[:, 1])
-        print(np.max(verts[:, 1]))
-        print(np.mean(verts[:, 1]))
+        self.x_ratio = (np.max(verts[:, 0]))/46081
+        self.z_ratio = (np.max(verts[:, 1]))/23041 # I don't think this is correct imo
+        self.y_bound = (np.max(verts[:, 2]))
+
+        #self.x_ratio = 1; self.z_ratio = 1
 
         # Define improved colormap (light beige → dark brown)
         terrain_colors = LinearSegmentedColormap.from_list(
