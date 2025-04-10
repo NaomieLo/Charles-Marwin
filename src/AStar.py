@@ -1,7 +1,6 @@
 import heapq
 import os
 import transformations
-import time
 from PathFinderBase import PathFinderBase
 
 class AStar(PathFinderBase):
@@ -20,7 +19,8 @@ class AStar(PathFinderBase):
         Returns:
         list: Path from start to goal, or None if no path found
         """
-        start_row, start_col, end_row, end_col = start, goal
+        start_row, start_col = start
+        end_row, end_col = goal
         #print("start row,col= ",(start_row,start_col))
         def heuristic(x1, y1, x2, y2):
             return ((x1-x2)**2 + (y1-y2)**2)**0.5
@@ -35,7 +35,7 @@ class AStar(PathFinderBase):
         
         # Track iterations
         iterations = 0
-        start_time=time.time()
+        
         while open_set:
             # Check iteration limit if specified
             if max_iterations is not None:
@@ -61,13 +61,5 @@ class AStar(PathFinderBase):
                     g_score[neighbor] = tentative_g_score  
                     f_score[neighbor] = tentative_g_score + heuristic(neighbor_x, neighbor_y, end_row, end_col)
                     heapq.heappush(open_set, (f_score[neighbor], neighbor))
-            
-            end_time=time.time()
-            time_elapsed=end_time-start_time
-            if time_elapsed >= 50.0:
-                return self._reconstruct_path(path_history, curr)#partial path
         
         return None  # No path found
-    
-    def __str__(self):
-        return "AStar Brain"
