@@ -19,7 +19,8 @@ class BidirectionalAStar(PathFinderBase):
 
     def find_path(self, start, goal,max_iterations=None,call_from_gaussian=False):
         if not call_from_gaussian:
-            start_row, start_col, end_row, end_col = start, goal
+            start_row, start_col = start
+            end_row, end_col = goal
         else:
             #already in row col form
             start_row, start_col=start
@@ -128,6 +129,3 @@ class BidirectionalAStar(PathFinderBase):
                     heapq.heappush(primary_search['open_set'], (f_score, neighbor))
         
         return None
-    
-    def __str__(self):
-        return "Bidirectional AStar Brain"

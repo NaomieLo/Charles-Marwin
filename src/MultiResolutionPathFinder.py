@@ -1,8 +1,8 @@
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from PathFinderBase import PathFinderBase
 from BidirectionalAStar import BidirectionalAStar
-from cv2 import pyrDown
 
 class MultiResolutionPathFinder(PathFinderBase):
     
@@ -38,7 +38,8 @@ class MultiResolutionPathFinder(PathFinderBase):
             return self.bidirectional_astar.find_path(start, goal)
 
         # Convert coordinates to row/col in full-resolution map
-        start_row, start_col, goal_row, goal_col = start, goal
+        start_row, start_col = start
+        goal_row, goal_col = goal
         #print("start row,col= ", (start_row, start_col))
         #print("end row,col= ", (goal_row, goal_col))
         # Start at the lowest resolution (coarsest level)
@@ -84,6 +85,3 @@ class MultiResolutionPathFinder(PathFinderBase):
             coarse_path = fine_path
 
         return coarse_path
-    
-    def __str__(self):
-        return "Multiresolution Brain"
