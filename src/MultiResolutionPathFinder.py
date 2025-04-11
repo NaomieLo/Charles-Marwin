@@ -100,13 +100,16 @@ class MultiResolutionPathFinder(PathFinderBase):
                     coarse_path=None
             else:
                 coarse_path=None
+
         if coarse_path[0] != start:
-            if len(coarse_path)>=1:
-                final_segment=self.bidirectional_astar.find_path(start,coarse_path[0],call_from_gaussian=True)
-                if final_segment is not None:
-                    coarse_path = final_segment + coarse_path[1:-1]
+            final_segment = self.bidirectional_astar.find_path(start, coarse_path[0], call_from_gaussian=True)
+            if final_segment is not None:
+                # Avoid duplicating the first node of coarse_path if it's already the last node of final_segment.
+                if final_segment[-1] == coarse_path[0]:
+                    coarse_path = final_segment[:-1] + coarse_path
                 else:
-                    coarse_path=None
+                    coarse_path = final_segment + coarse_path
             else:
-                coarse_path=None
+                coarse_path = None
+
         return coarse_path
