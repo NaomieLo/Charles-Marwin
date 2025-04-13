@@ -191,3 +191,5 @@ if __name__ == "__main__":
     ui_instance = UI()
     ui_instance.set_mesh("src/models/perseverance/ImageToStl.com_25042_perseverance.obj")
     ui_instance.main()
+    while(1):
+        ui_instance.update_frame()
