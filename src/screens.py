@@ -5,6 +5,7 @@ from tkinter import ttk
 from tkinter import PhotoImage
 from tkinter import Entry
 from tkinter import font as tkFont
+from tkinter import messagebox
 from PIL import Image, ImageTk
 from robot import Robot
 from robot_render import UI
@@ -757,7 +758,6 @@ class SpawnScreen(tk.Frame):
             bg="#D99F6B",
         )
         title_label.pack(pady=(10, 5))
-        super().__init__(parent, bg="#D99F6B")
 
         self.point_dict = {}
 
@@ -916,8 +916,8 @@ class SpawnScreen(tk.Frame):
 
         # Draw the start marker if selected
         if self.selected_start is not None:
-            x, y = self.selected_start
-            x, y = x_orig // 4, y_orig // 4
+            x_orig, y_orig = self.selected_start
+            x, y = x_orig // 10, y_orig // 10
             r = 5
             self.start_marker_id = self.station_canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill="green", outline="white"
@@ -929,7 +929,7 @@ class SpawnScreen(tk.Frame):
         if self.selected_end is not None:
             x_orig, y_orig = self.selected_end
             # Scale down the silicon point so it appears on the map
-            x, y = x_orig // 4, y_orig // 4
+            x, y = x_orig // 8, y_orig // 10
             r = 5
             self.end_marker_id = self.station_canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill="blue", outline="white"
@@ -1026,12 +1026,10 @@ class DummyPage(tk.Frame):
         It stops and charge the robot when there is no sufficient battery
         Reture: True->reach end; False->failed to reach end
         """
-        print("Get into start_robot")
         try:
             robot = self.controller.robot
             # find path
             self.robot_get_path(start, end)
-            print("Got path for robot")
             # print(robot.Path)
             self.controller.robot_ui.main() 
 
@@ -1060,7 +1058,7 @@ class DummyPage(tk.Frame):
                     )
                     if robot.Motor.consume_battery(cur_elevation, next_elevation):
                         # has enough battery
-                        timemodule.sleep(0.25)
+                        timemodule.sleep(0.15)
                         self.move_to_next_pos(next_elevation)
                     else:
                         # not sufficient battery
