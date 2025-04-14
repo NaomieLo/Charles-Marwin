@@ -1,7 +1,6 @@
 import transformations
 import time
 from sensors import Sensor
-import threading
 from typing import Dict, Any, Optional
 
 """
@@ -160,12 +159,6 @@ class Motors:
     
         self.is_running = True
         self.is_stopped = False
-
-        # Start the background charging thread
-        if self.charging_thread is None or not self.charging_thread.is_alive():
-            self.charging_thread = threading.Thread(target=self.background_charging)
-            self.charging_thread.daemon = True
-            self.charging_thread.start()
         
         print(f"Motors started\n")
         return True
@@ -174,9 +167,4 @@ class Motors:
         """Stop the motors and mark as stopped for bonus charging"""
         self.is_running = False
         self.is_stopped = True
-
-        # Stop threads
-        if self.charging_thread and self.charging_thread.is_alive():
-            self.charging_thread.join(timeout=1.0)
-        
         print(f"Motors stopped. Battery: {self.battery:.1f}%")

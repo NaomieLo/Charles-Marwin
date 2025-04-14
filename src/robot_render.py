@@ -136,7 +136,6 @@ class UI():
         self.projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
         
     def terminate(self):
-        print(self.terrain.x_max, self.terrain.z_max)
         glfw.terminate()
 
     def update_frame(self):
