@@ -52,8 +52,8 @@ class Robot:
         self.Sensor = None
         self.Path = []
         self.Motor = Motors(None, None)
-        self.initPosition = (0,0)
-        self.endPosition = (0,0)
+        self.initPosition = None
+        self.endPosition = None
         self.curr_idx=0
         self.elapsedTime = 0
 
