@@ -144,8 +144,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -180,16 +180,16 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        for F in (
-            WelcomeScreen,
-            MainMenuScreen,
-            SelectionScreen,
-            SpawnScreen,
-            DummyPage,
-            FinishScreen,
-            HistoryScreen,
-        ):
-
+        # for F in (
+        #     WelcomeScreen,
+        #     MainMenuScreen,
+        #     SelectionScreen,
+        #     SpawnScreen,
+        #     DummyPage,
+        #     FinishScreen,
+        #     HistoryScreen,
+        # ):
+        for F in [SpawnScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
@@ -207,7 +207,7 @@ class App(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
+        self.show_frame("SpawnScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
@@ -881,14 +881,12 @@ class SpawnScreen(tk.Frame):
         self.end_marker_id = None
         self.end_text_id = None
 
-        # go button
         go_button = tk.Button(
             self, text="Go", font=("Roboto", 20), command=self.main_app_loop
         )
         go_button.pack(pady=10)
 
     def update_start_selection(self, selection):
-        # Convert the selection string x,y into a coordinate tuple
         try:
             x_str, y_str = selection.split(",")
             self.selected_start = (int(x_str), int(y_str))
@@ -907,7 +905,7 @@ class SpawnScreen(tk.Frame):
         self._draw_markers()
 
     def _draw_markers(self):
-        # Clear previous markers
+        # Clear previous markers.
         if self.start_marker_id is not None:
             self.station_canvas.delete(self.start_marker_id)
             self.start_marker_id = None
@@ -934,7 +932,7 @@ class SpawnScreen(tk.Frame):
         # Draw the silicon
         if self.selected_end is not None:
             x_orig, y_orig = self.selected_end
-            # Scale down the silicon point so it appears on the map
+            # Scale down the silicon point so it appears on the map.
             x, y = x_orig // 2, y_orig // 2
             r = 5
             self.end_marker_id = self.station_canvas.create_oval(
@@ -945,7 +943,7 @@ class SpawnScreen(tk.Frame):
             )
 
     def _resize_station(self, event):
-        # resize and center image
+        # If a station_orig image is provided, resize and center it.
         if self.controller.station_orig:
             orig_width, orig_height = self.controller.station_orig.size
             scale = max(self.map_width / orig_width, self.map_height / orig_height)
@@ -969,19 +967,21 @@ class SpawnScreen(tk.Frame):
                 )
 
     def main_app_loop(self):
-        # ERROR HANDLEING!
-        #  Only allow proceeding if both start and end points are selected
+        # Only allow proceeding if both start and end points are selected.
         if not self.selected_start or not self.selected_end:
             messagebox.showerror(
                 "Selection Error", "Please select both a start and a silicon point."
             )
             return
 
-        # Print the selected coordinates
+        # Print the selected coordinates.
         print("Selected Start:", self.selected_start)
         print("Selected End:", self.selected_end)
+        # Also print the scaled silicon point that is actually drawn.
+        scaled_end = (self.selected_end[0] // 3, self.selected_end[1] // 3)
+        print("Scaled End for map:", scaled_end)
 
-        # Proceed to the next screen
+        # Proceed to the next screen.
         self.controller.show_frame("DummyPage")
         start, end = self.get_selected_points()
         if start and end and hasattr(self.controller.robot, "Brain"):
@@ -1000,6 +1000,16 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
+        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
+        label.pack(pady=40)
+
+        next_button = tk.Button(
+            self,
+            text="Next",
+            font=("Roboto", 20),
+            command=lambda: controller.show_frame("FinishScreen"),
+        )
+        next_button.pack(pady=20)
 
     def robot_get_path(self, start, end):
         start_time = timemodule.time()
@@ -1039,7 +1049,7 @@ class DummyPage(tk.Frame):
             self.robot_get_path(start, end)
             print("Got path for robot")
             # print(robot.Path)
-            self.controller.robot_ui.main() 
+            self.controller.robot_ui.main()  # TODO: ADD PARAMETERS FOR UI MAIN
 
             # start engine
             if robot.Motor.start_motors():
@@ -1051,11 +1061,6 @@ class DummyPage(tk.Frame):
                     curr = robot.Path[robot.curr_idx]
 
                     if curr == robot.endPosition:
-                        self.controller.frames["FinishScreen"].label.configure(
-                            text="You've reached your destination!"
-                        )
-                        self.controller.robot_ui.terminate()
-                        self.controller.show_frame("FinishScreen")
                         return True  # reach the end
 
                     cur_elevation = robot.Sensor.get_elevation_at_position(
@@ -1093,9 +1098,6 @@ class DummyPage(tk.Frame):
 
                 robot.Motor.stop()  # turn off motor
                 self.controller.robot_ui.terminate()
-                self.controller.frames["FinishScreen"].label.configure(
-                    text="You've reached your destination!"
-                )
                 self.controller.show_frame("FinishScreen")
                 return True
         except Exception as e:

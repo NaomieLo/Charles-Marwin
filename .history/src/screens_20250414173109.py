@@ -180,16 +180,16 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        for F in (
-            WelcomeScreen,
-            MainMenuScreen,
-            SelectionScreen,
-            SpawnScreen,
-            DummyPage,
-            FinishScreen,
-            HistoryScreen,
-        ):
-
+        # for F in (
+        #     WelcomeScreen,
+        #     MainMenuScreen,
+        #     SelectionScreen,
+        #     SpawnScreen,
+        #     DummyPage,
+        #     FinishScreen,
+        #     HistoryScreen,
+        # ):
+        for F in [SpawnScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
@@ -207,7 +207,7 @@ class App(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
+        self.show_frame("SpawnScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
@@ -1000,6 +1000,16 @@ class DummyPage(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
+        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
+        label.pack(pady=40)
+
+        next_button = tk.Button(
+            self,
+            text="Next",
+            font=("Roboto", 20),
+            command=lambda: controller.show_frame("FinishScreen"),
+        )
+        next_button.pack(pady=20)
 
     def robot_get_path(self, start, end):
         start_time = timemodule.time()
@@ -1039,7 +1049,7 @@ class DummyPage(tk.Frame):
             self.robot_get_path(start, end)
             print("Got path for robot")
             # print(robot.Path)
-            self.controller.robot_ui.main() 
+            self.controller.robot_ui.main()  # TODO: ADD PARAMETERS FOR UI MAIN
 
             # start engine
             if robot.Motor.start_motors():
@@ -1051,11 +1061,6 @@ class DummyPage(tk.Frame):
                     curr = robot.Path[robot.curr_idx]
 
                     if curr == robot.endPosition:
-                        self.controller.frames["FinishScreen"].label.configure(
-                            text="You've reached your destination!"
-                        )
-                        self.controller.robot_ui.terminate()
-                        self.controller.show_frame("FinishScreen")
                         return True  # reach the end
 
                     cur_elevation = robot.Sensor.get_elevation_at_position(
@@ -1093,9 +1098,6 @@ class DummyPage(tk.Frame):
 
                 robot.Motor.stop()  # turn off motor
                 self.controller.robot_ui.terminate()
-                self.controller.frames["FinishScreen"].label.configure(
-                    text="You've reached your destination!"
-                )
                 self.controller.show_frame("FinishScreen")
                 return True
         except Exception as e:
