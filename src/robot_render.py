@@ -109,7 +109,7 @@ class UI():
         # Initialize GL Context
         self.window = glfw.create_window(1000, 800, "Charles Marwin", None, None)
         glfw.make_context_current(self.window)
-        glViewport(0,0,800,600)
+        glViewport(0,0,1000,800)
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.0, 0.0, 0.0, 1.0)
         #glfw.set_cursor_pos_callback(window,self.mouse_callback)
