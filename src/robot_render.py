@@ -32,9 +32,9 @@ class UI():
         self.robot_mesh = path
 
     def set_pos(self, a, b, c):
-        x = a*self.terrain.x_ratio; y = b; z = c*self.terrain.z_ratio
+        x = a; y = b; z = -1 * c
         self.robot_pos.x = x; self.cam_pos.x = x
-        self.robot_pos.y = y; self.cam_pos.y = y + 2
+        self.robot_pos.y = 10; self.cam_pos.y = 12 #DUMMY HEIGHT, PLS CHECK
         self.robot_pos.z = z; self.cam_pos.z = z + 6
 
     def move_forward(self):
