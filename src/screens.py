@@ -747,6 +747,8 @@ class SelectionScreen(tk.Frame):
 class SpawnScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
+        self.start_points_actual = []
+        self.silicon_points_actual = []
         self.controller = controller
         title_label = tk.Label(
             self,
@@ -803,16 +805,7 @@ class SpawnScreen(tk.Frame):
                 transformations.xy_to_rowcol(x, y, inverse_affine)
             )
 
-        self.start_points_actual = [
-            (100, 100),
-            (150, 250),
-            (300, 140),
-            (300, 160),
-            (100, 355),
-        ]
-
-        self.silicon_points_actual = [(1000, 1000), (1090, 300), (1050, 400)]
-
+        
         self.start_options = [f"{pt[0]},{pt[1]}" for pt in self.start_points_actual]
         self.silicon_options = [f"{pt[0]},{pt[1]}" for pt in self.silicon_points_actual]
         self.selected_start = None  # tuple (x,y)
@@ -924,6 +917,7 @@ class SpawnScreen(tk.Frame):
         # Draw the start marker if selected
         if self.selected_start is not None:
             x, y = self.selected_start
+            x, y = x_orig // 4, y_orig // 4
             r = 5
             self.start_marker_id = self.station_canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill="green", outline="white"
@@ -935,7 +929,7 @@ class SpawnScreen(tk.Frame):
         if self.selected_end is not None:
             x_orig, y_orig = self.selected_end
             # Scale down the silicon point so it appears on the map
-            x, y = x_orig // 2, y_orig // 2
+            x, y = x_orig // 4, y_orig // 4
             r = 5
             self.end_marker_id = self.station_canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill="blue", outline="white"
