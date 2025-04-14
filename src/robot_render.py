@@ -33,9 +33,9 @@ class UI():
 
     def set_pos(self, a, b, c):
         x = a; y = b; z = -1 * c
-        self.robot_pos.x = x; self.cam_pos.x = x
-        self.robot_pos.y = 10; self.cam_pos.y = 12 #DUMMY HEIGHT, PLS CHECK
-        self.robot_pos.z = z; self.cam_pos.z = z + 6
+        self.robot_pos.x = x*46; self.cam_pos.x = x*46
+        self.robot_pos.y = y+8200; self.cam_pos.y = y+8202 #DUMMY HEIGHT, PLS CHECK
+        self.robot_pos.z = z*46; self.cam_pos.z = z*46 + 6
 
     def move_forward(self):
         self.robot_pos += self.robot_speed * self.robot_forward
@@ -136,6 +136,7 @@ class UI():
         self.projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
         
     def terminate(self):
+        print(self.terrain.x_max, self.terrain.z_max)
         glfw.terminate()
 
     def update_frame(self):
