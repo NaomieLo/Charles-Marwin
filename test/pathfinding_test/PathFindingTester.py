@@ -410,7 +410,11 @@ if __name__ == "__main__":
     p.run_resloution_real_map()
     end_time = time.time()
     print("Running time: ", end_time - start_time)
+<<<<<<< HEAD
 '''
+=======
+
+>>>>>>> origin/coordinateScreen
     print("\n=========== Running Bidirectional A* Test ===========")
     start_time = time.time()
     p = PathFindingTester(True)
@@ -424,4 +428,7 @@ if __name__ == "__main__":
     p.run_Astar_real_map()
     end_time = time.time()
     print("Running time: ", end_time - start_time)
+<<<<<<< HEAD
 '''
+=======
+>>>>>>> origin/coordinateScreen

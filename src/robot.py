@@ -81,6 +81,23 @@ class Robot:
             return next_pos
         raise Exceptions.NoNextNode("There is no next node")
 
+    def set_positions(self, start, end):
+        """Validate selected positions in spawn screen before setting them"""
+        if not isinstance(start, tuple) or not isinstance(end, tuple):
+            raise ValueError("Position must be tuple")
+        if len(start) != 2 or len(end) != 2:
+            raise ValueError("Postitions must be (x, y)")
+
+        self.initPosition = start
+        self.endPosition = end
+
+        print(f"New start position: {start}, new end position: {end}")
+
+        if self.Brain: # if algorithm is already set
+            self.Path = self.Brain.find_path(start, end)
+    
+    
+
 
         
     

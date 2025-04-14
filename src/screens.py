@@ -10,6 +10,8 @@ from robot import Robot
 from robot_render import UI
 import turtle
 import math
+import rasterio
+import transformations
 import time as timemodule
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
@@ -400,12 +402,74 @@ class SpawnScreen(tk.Frame):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        title_label = tk.Label(
-            self,
-            text="Select Your Station Location",
-            font=("Orbitron", 24),
-            bg="#D99F6B",
-        )
+        self.start_points_actual, self.silicon_points_actual = [], []
+        # These are the mock points
+        self.start_points = []
+        self.silicon_points = []
+
+        self.point_dict = {}
+        
+        dem_path = 'data/MarsMGSMOLA_MAP2_EQUI.tif'
+        with rasterio.open(dem_path) as data:
+            affine_transformation = data.transform
+            crs = data.crs
+        
+        # setting up formward and inverse transformers
+        transformer = transformations.setup_transformer(crs)
+        inverse_transformer = transformations.setup_reverse_transformer(crs)
+        inverse_affine = ~affine_transformation # inver the affine transformation for reverse conversion
+
+        # pre-defined instance variables for coordinates for selection
+        self.start_points_latlong = [(-5.428260513239866, -177.4675156166616), 
+                                     (-2.7784985817134484, -177.88105294412517), 
+                                     (-4.905929665615945, -179.80755117644594), 
+                                     (-4.338556732387957, -178.79279779071425), 
+                                     (-3.4286244467142444, -179.17547372071087)]
+            
+        self.silicon_points_latlong = [(-5.616184492027275, -179.59548261219808), 
+                                       (-3.1172526680097965, -178.24814887053535), 
+                                       (-4.8298449247663315, -178.86639917852872)]
+
+        
+        # Convert latlong to xy using transformations
+        for coord in self.start_points_latlong:
+            x, y = transformations.latlong_to_xy(coord[0], coord[1], inverse_transformer)
+            self.start_points_actual.append(transformations.xy_to_rowcol(x, y, inverse_affine))
+            
+
+        for coord in self.silicon_points_latlong:
+            x, y = transformations.latlong_to_xy(coord[0], coord[1], inverse_transformer)
+            self.silicon_points_actual.append(transformations.xy_to_rowcol(x, y, inverse_affine))
+
+        self.start_points.append((100, 100)) 
+        self.start_points.append((150, 250))
+        self.start_points.append((100, 350)) 
+        self.start_points.append((300, 500))
+        self.start_points.append((300, 400))
+
+        
+        self.silicon_points.append((1000, 100))
+        self.silicon_points.append((1090, 300))
+        self.silicon_points.append((1050, 400))        
+
+        for i in range(len(self.start_points)):
+            self.point_dict[self.start_points[i]] = self.start_points_actual[i]
+
+        for i in range(len(self.silicon_points)):   
+            self.point_dict[self.silicon_points[i]] = self.silicon_points_actual[i]
+
+        # Visualization of the points
+        self.point_radius = 10
+        self.start_color = "green"
+        self.end_color = "blue"
+        self.highlight_color = "red"
+
+        self.selected_start = ()          # Will store tuple
+        self.selected_end = ()            # same
+        self.point_objects = []             # Canvas references
+
+
+        title_label = tk.Label(self, text="Select Your Station Location", font=("Orbitron", 24), bg="#D99F6B")
         title_label.pack(pady=10)
 
         main_frame = tk.Frame(self, bg="#D99F6B")
@@ -415,73 +479,192 @@ class SpawnScreen(tk.Frame):
         image_frame = tk.Frame(main_frame, bg="#000000")
         image_frame.pack(side="left", fill="both", expand=True, padx=10)
         if controller.station_orig:
-            self.station_canvas = tk.Canvas(
-                image_frame, bg="#000000", highlightthickness=0
-            )
+            self.station_canvas = tk.Canvas(image_frame, width=700, height=500, bg="#000000", highlightthickness=0)
             self.station_canvas.pack(fill="both", expand=True)
             self.station_canvas.bind("<Configure>", self._resize_station)
+            self.station_canvas.bind("<Button-1>", self._on_canvas_click)       # added clicker
+            self.station_canvas.bind("<Motion>", self._on_mouse_move)           # hover effect
             self.station_image_id = None
         else:
-            tk.Label(
-                image_frame,
-                text="Station Image",
-                font=("Orbitron", 20),
-                bg="#000000",
-                fg="white",
-            ).pack(expand=True)
+            tk.Label(image_frame, text="Station Image", font=("Orbitron", 20), bg="#000000", fg="white").pack(expand=True)
 
-        # coordinates
-        table_frame = tk.Frame(main_frame, bg="#D99F6B")
-        table_frame.pack(side="right", fill="y", padx=10)
-        header_x = tk.Label(table_frame, text="X", font=("Roboto", 14), bg="#D99F6B")
-        header_y = tk.Label(table_frame, text="Y", font=("Roboto", 14), bg="#D99F6B")
-        header_x.grid(row=0, column=0, padx=5, pady=5)
-        header_y.grid(row=0, column=1, padx=5, pady=5)
+        # Bottom points lists
+        lists_frame = tk.Frame(self, bg="#D99F6B")
+        lists_frame.pack(side="bottom", fill="x", pady=10)
 
-        lbl_x = tk.Label(table_frame, text=str(10), font=("Roboto", 14), bg="#D99F6B")
-        lbl_y = tk.Label(table_frame, text=str(20), font=("Roboto", 14), bg="#D99F6B")
-        lbl_x.grid(row=0, column=0, padx=5, pady=5)
-        lbl_y.grid(row=0, column=1, padx=5, pady=5)
+        # Start points list
+        start_frame = tk.Frame(lists_frame, bg="#D99F6B")
+        start_frame.pack(side="left", padx=20)
+        tk.Label(start_frame, text="Start Points", bg="#D99F6B", 
+                font=("Roboto", 12, "bold")).pack()
+        self.start_labels = []
+        for i, point in enumerate(self.start_points_actual):
+            lbl = tk.Label(start_frame, text=f"({point[0]}, {point[1]})", 
+                          bg="#D99F6B", font=("Roboto", 12), relief="ridge", width=10)
+            lbl.bind("<Button-1>", lambda e, idx=i: self.select_from_list(idx, "start"))
+            lbl.pack(pady=2)
+            self.start_labels.append(lbl)
+
+        # Silicon points list
+        end_frame = tk.Frame(lists_frame, bg="#D99F6B")
+        end_frame.pack(side="right", padx=20)
+        tk.Label(end_frame, text="Silicon Points", bg="#D99F6B", 
+                font=("Roboto", 12, "bold")).pack()
+        self.end_labels = []
+        for i, point in enumerate(self.silicon_points_actual):
+            lbl = tk.Label(end_frame, text=f"({point[0]}, {point[1]})", 
+                          bg="#D99F6B", font=("Roboto", 12), relief="ridge", width=10)
+            lbl.bind("<Button-1>", lambda e, idx=i: self.select_from_list(idx, "end"))
+            lbl.pack(pady=2)
+            self.end_labels.append(lbl)
 
         def main_app_loop():
-            # Set sim initial position to robot.initPosition
-            controller.show_frame("DummyPage")
-            # start_pos = controller.robot.initPosition
-            # end_pos = controller.robot.endPosition
-            # TODO: REMOVE TESTING VALUES
-            controller.robot.initPosition = (1281, 8960)
-            controller.robot.endPosition = (1490, 8960)
-            start_pos = (1281, 8960)
-            end_pos = (1490, 8960)
-            # TODO: REMOVE TESTING VALUES
+            print("Got into main loop")
+            self.controller.show_frame("DummyPage")
+            start, end = self.get_selected_points()
+            if start and end and hasattr(self.controller.robot, 'Brain'):
+                self.controller.robot.initPosition = start
+                self.controller.robot.endPosition = end
+                
+            # Set sim endpoints
+            start_pos = controller.robot.initPosition
+            end_pos = controller.robot.endPosition
             controller.frames["DummyPage"].start_robot(start_pos, end_pos)
 
         # go button
-        go_button = tk.Button(
-            self, text="Go", font=("Roboto", 20), command=main_app_loop
-        )
-        go_button.pack(pady=20)
+        go_button = tk.Button(self, text="Go", font=("Roboto", 20))
+        go_button.place(relx=0.5, rely=0.96, anchor="center")
+        go_button.configure(command=main_app_loop)
+
+    def _on_mouse_move(self, event): 
+        """Show coordinates when hovering over points"""
+        found = False
+        # Check start points first
+        for point in self.start_points:
+            if self._is_click_near(event.x, event.y, point):
+                self.show_coords(self.point_dict[point][0], self.point_dict[point][1])
+                found = True
+                break
+        if not found:
+            # Check silicon points if no start point found
+            for point in self.silicon_points:
+                if self._is_click_near(event.x, event.y, point):
+                    self.show_coords(self.point_dict[point][0], self.point_dict[point][1])
+                    found = True
+                    break
+        if not found:
+            self.hide_coords()
+    
+    def show_coords(self, x, y): 
+        """Display coordinates near cursor"""
+        if not hasattr(self, 'coord_label'):
+            self.coord_label = tk.Label(self.station_canvas, text=f"({x}, {y})", 
+                                       bg="white", fg="black", font=("Roboto", 8))
+            self.coord_id = self.station_canvas.create_window(x+15, y+15, 
+                                                            window=self.coord_label)
+        else:
+            self.coord_label.config(text=f"({x}, {y})")
+            self.station_canvas.coords(self.coord_id, x+15, y+15)
+    
+    def hide_coords(self):
+        """Remove coordinate display"""
+        if hasattr(self, 'coord_id'):
+            self.station_canvas.delete(self.coord_id)
+            del self.coord_label
+            del self.coord_id
+    
+    def select_from_list(self, index, point_type):
+        """Handle list item clicks"""
+        if point_type == "start":
+            self.selected_start = self.start_points_actual[index]
+            self._highlight_list_item(self.start_points_actual[index], "start")
+        else:
+            self.selected_end = self.silicon_points_actual[index]
+            self._highlight_list_item(self.silicon_points_actual[index], "end")
+        self._draw_points()
+    
+    def _highlight_list_item(self, point, point_type):
+        """Update list item appearance"""
+        if point_type == "start":
+            for i, lbl in enumerate(self.start_labels):
+                lbl.config(
+                    bg="yellow" if self.start_points_actual[i] == point else "#D99F6B",
+                    relief="sunken" if self.start_points_actual[i] == point else "ridge"
+                )
+        else:
+            for i, lbl in enumerate(self.end_labels):
+                lbl.config(
+                    bg="yellow" if self.silicon_points_actual[i] == point else "#D99F6B",
+                    relief="sunken" if self.silicon_points_actual[i] == point else "ridge"
+                )
+    
+    def _draw_points(self):
+        """Draw predefined points on the map"""
+        # Clear existing
+        for point in self.point_objects:
+            self.station_canvas.delete(point)
+        self.point_objects = []
+        
+        # Draw start points
+        for point in self.start_points: 
+            x, y = point
+            color = self.highlight_color if self.point_dict.get(point) == self.selected_start else self.start_color
+            point_id = self.station_canvas.create_oval(
+                x - self.point_radius, y - self.point_radius,
+                x + self.point_radius, y + self.point_radius,
+                fill=color, outline="white"
+            )
+            self.point_objects.append(point_id)
+
+        # Draw silicon points
+        for point in self.silicon_points:
+            x, y = point
+            color = self.highlight_color if self.point_dict.get(point) == self.selected_end else self.end_color
+            point_id = self.station_canvas.create_oval(
+                x - self.point_radius, y - self.point_radius,
+                x + self.point_radius, y + self.point_radius,
+                fill=color, outline="white"
+            )
+            self.point_objects.append(point_id)
+
+    def _is_click_near(self, x, y, point):
+        """Check if click is near a predefined point"""
+        px, py = point
+        return (x - px)**2 + (y - py)**2 <= self.point_radius**2
+
+    def _on_canvas_click(self, event): 
+        """Handle map clicks for point selection"""
+        # Check start points
+        for point in self.start_points:
+            if self._is_click_near(event.x, event.y, point):
+                self.selected_start = self.point_dict.get(point)
+                break
+        else:  # Check silicon points if no start point clicked
+            for point in self.silicon_points:
+                if self._is_click_near(event.x, event.y, point):
+                    self.selected_end = self.point_dict.get(point)
+                    break
+        self._draw_points()  # Update visuals
+
 
     def _resize_station(self, event):
         if self.controller.station_orig:
             orig_width, orig_height = self.controller.station_orig.size
             scale = max(event.width / orig_width, event.height / orig_height)
             new_size = (int(orig_width * scale), int(orig_height * scale))
-            resized = self.controller.station_orig.resize(
-                new_size, Image.Resampling.LANCZOS
-            )
+            resized = self.controller.station_orig.resize(new_size, Image.Resampling.LANCZOS)
             left = (new_size[0] - event.width) // 2
             top = (new_size[1] - event.height) // 2
             cropped = resized.crop((left, top, left + event.width, top + event.height))
             self.station_image = ImageTk.PhotoImage(cropped)
             if self.station_image_id:
-                self.station_canvas.itemconfig(
-                    self.station_image_id, image=self.station_image
-                )
+                self.station_canvas.itemconfig(self.station_image_id, image=self.station_image)
             else:
-                self.station_image_id = self.station_canvas.create_image(
-                    0, 0, image=self.station_image, anchor="nw"
-                )
+                self.station_image_id = self.station_canvas.create_image(0, 0, image=self.station_image, anchor="nw")
+
+    def get_selected_points(self):
+        """For App controller to get coordinates"""
+        return self.selected_start, self.selected_end
 
 
 # Dummy Page FOR TERRAIN AND ROBOT
@@ -531,10 +714,12 @@ class DummyPage(tk.Frame):
         It stops and charge the robot when there is no sufficient battery
         Reture: True->reach end; False->failed to reach end
         """
+        print("Get into start_robot")
         try:
             robot = self.controller.robot
             # find path
             self.robot_get_path(start, end)
+            print("Got path for robot")
             # print(robot.Path)
             self.controller.robot_ui.main()  # TODO: ADD PARAMETERS FOR UI MAIN
 
@@ -980,4 +1165,5 @@ class HistoryScreen(tk.Frame):
 if __name__ == "__main__":
     app = App()
     # load_fonts()
+    app.state("zoomed")
     app.mainloop()
