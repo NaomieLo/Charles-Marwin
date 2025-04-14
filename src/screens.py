@@ -420,15 +420,15 @@ class SpawnScreen(tk.Frame):
         inverse_affine = ~affine_transformation # inver the affine transformation for reverse conversion
 
         # pre-defined instance variables for coordinates for selection
-        self.start_points_latlong = [(-5.428260513239866, -177.4675156166616), 
-                                     (-2.7784985817134484, -177.88105294412517), 
-                                     (-4.905929665615945, -179.80755117644594), 
-                                     (-4.338556732387957, -178.79279779071425), 
-                                     (-3.4286244467142444, -179.17547372071087)]
+        self.start_points_latlong = [(81.13618240074565, 33.62664919911721), 
+                                     (78.91680726267303, 34.582734719042755), 
+                                     (79.59810723867244, 31.396575566973826), 
+                                     (80.33658388771461, 33.602280285223856), 
+                                     (78.04577624678807, 32.35789063699329)]
             
-        self.silicon_points_latlong = [(-5.616184492027275, -179.59548261219808), 
-                                       (-3.1172526680097965, -178.24814887053535), 
-                                       (-4.8298449247663315, -178.86639917852872)]
+        self.silicon_points_latlong = [(80.43372651754812, 32.88977863165752), 
+                                       (78.69085081650587, 33.91451081145679), 
+                                       (79.72087817305196, 33.94044042500557)]
 
         
         # Convert latlong to xy using transformations
@@ -743,6 +743,7 @@ class DummyPage(tk.Frame):
                     )
                     if robot.Motor.consume_battery(cur_elevation, next_elevation):
                         # has enough battery
+                        timemodule.sleep(0.25) 
                         self.move_to_next_pos(next_elevation)
                     else:
                         # not sufficient battery
