@@ -144,8 +144,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -180,16 +180,16 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        for F in (
-            WelcomeScreen,
-            MainMenuScreen,
-            SelectionScreen,
-            SpawnScreen,
-            DummyPage,
-            FinishScreen,
-            HistoryScreen,
-        ):
-
+        # for F in (
+        #     WelcomeScreen,
+        #     MainMenuScreen,
+        #     SelectionScreen,
+        #     SpawnScreen,
+        #     DummyPage,
+        #     FinishScreen,
+        #     HistoryScreen,
+        # ):
+        for F in [SpawnScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
@@ -207,7 +207,7 @@ class App(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
+        self.show_frame("SpawnScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
@@ -969,19 +969,21 @@ class SpawnScreen(tk.Frame):
                 )
 
     def main_app_loop(self):
-        # ERROR HANDLEING!
-        #  Only allow proceeding if both start and end points are selected
+        # Only allow proceeding if both start and end points are selected.
         if not self.selected_start or not self.selected_end:
             messagebox.showerror(
                 "Selection Error", "Please select both a start and a silicon point."
             )
             return
 
-        # Print the selected coordinates
+        # Print the selected coordinates.
         print("Selected Start:", self.selected_start)
         print("Selected End:", self.selected_end)
+        # Also print the scaled silicon point that is actually drawn.
+        scaled_end = (self.selected_end[0] // 3, self.selected_end[1] // 3)
+        print("Scaled End for map:", scaled_end)
 
-        # Proceed to the next screen
+        # Proceed to the next screen.
         self.controller.show_frame("DummyPage")
         start, end = self.get_selected_points()
         if start and end and hasattr(self.controller.robot, "Brain"):

@@ -144,8 +144,8 @@ class App(tk.Tk):
         self.title("Charles Marwin")
         self.geometry("800x600")
         self.resizable(True, True)
-        self.robot = Robot("Default", "None")
-        self.robot_ui = UI()
+        # self.robot = Robot("Default", "None")
+        # self.robot_ui = UI()
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
@@ -180,16 +180,16 @@ class App(tk.Tk):
 
         # store the screens in a dictionary
         self.frames = {}
-        for F in (
-            WelcomeScreen,
-            MainMenuScreen,
-            SelectionScreen,
-            SpawnScreen,
-            DummyPage,
-            FinishScreen,
-            HistoryScreen,
-        ):
-
+        # for F in (
+        #     WelcomeScreen,
+        #     MainMenuScreen,
+        #     SelectionScreen,
+        #     SpawnScreen,
+        #     DummyPage,
+        #     FinishScreen,
+        #     HistoryScreen,
+        # ):
+        for F in [SpawnScreen]:
             page_name = F.__name__
             if page_name == "WelcomeScreen":
                 frame = F(
@@ -207,7 +207,7 @@ class App(tk.Tk):
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("WelcomeScreen")
+        self.show_frame("SpawnScreen")
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
