@@ -180,7 +180,7 @@ class UI():
         # Update and draw battery bar
         self.battery = self.controller.robot.Motor.get_battery()
         self.battery = max(0.0, self.battery)
-        self.battery_bar.fill = self.battery
+        self.battery_bar.fill = self.battery/ 100.0
         
         glDisable(GL_DEPTH_TEST)
         self.battery_bar.draw(800, 600)
