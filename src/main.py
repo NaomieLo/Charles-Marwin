@@ -40,7 +40,7 @@ def main():
         exit(1)
 
     try:
-        unzip_dem(terr_path_zip, terr_path_zip)
+        unzip_dem(terr_path_zip, terr_path)
     except:
         print(f"Error during terr extraction: {e}")
         exit(1) 
