@@ -10,6 +10,7 @@ import numpy as np
 from PIL import Image
 from pyglm import glm
 from batterybar import BatteryBar
+from motors import get_battery
 
 null_ptr = ctypes.c_void_p
 
@@ -174,7 +175,7 @@ class UI():
         #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
 
         # Update and draw battery bar
-        self.battery -= self.delta_time * 0.002
+        self.battery = get_battery()
         self.battery = max(0.0, self.battery)
         self.battery_bar.fill = self.battery
         
