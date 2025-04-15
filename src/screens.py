@@ -217,6 +217,10 @@ class App(tk.Tk):
                 parent=self.container, controller=self
             )
             self.frames["MetricDisplay"].grid(row=0, column=0, sticky="nsew")
+
+        if page_name == "HistoryScreen":
+            self.frames["HistoryScreen"].refresh_data()
+
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -1001,10 +1005,19 @@ class DummyPage(tk.Frame):
         end_time = timemodule.time()
 
         elapsed_time = end_time - start_time
-        self.controller.robot.elapsedTime = elapsed_time
+        self.controller.robot.elapsed_time = elapsed_time
+
+        def distance_calc(p1, p2):
+            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+
+        distance = distance_calc(self.controller.robot.initPosition, self.controller.robot.endPosition)
 
         if path is not None:
             self.controller.robot.Path = path
+            
+            to_write = input_data(self.controller.robot.initPosition, self.controller.robot.endPosition, self.controller.robot.Name, self.controller.robot.brain_name, distance, elapsed_time, self.controller.robot.compute_path_cost())
+            write_history(to_write)
+
         else:
             raise Exceptions.NoPathFound("Failed to find a path")
 
@@ -1271,18 +1284,18 @@ class MetricDisplay(tk.Frame):
 
         distance = distance_calc(robot.initPosition, robot.endPosition)
         elapsed_time_str = (
-            f"{robot.elapsedTime:.2f} s" if hasattr(robot, "elapsed_time") else "0.00 s"
-        )
+            f"{robot.elapsed_time:.2f} s" if hasattr(robot, "elapsed_time") else "0.00 s"
+        )      
         # stats found in path
-        # TODO: Fix time stats
+    
         stats_data = [
             ("Start Location:", str(robot.initPosition)),
             ("End Location:", str(robot.endPosition)),
             ("Robot:", robot.Name),
-            ("AI:", str(robot.Brain)),
+            ("AI:", str(robot.brain_name)),
             ("Distance:", f"{distance:.2f}"),
             ("Time:", elapsed_time_str),
-            ("Cost:", str(robot.compute_path_cost())),
+            ("Cost:", str(round(robot.compute_path_cost(),2))),
         ]
 
         # frame for stats
@@ -1370,6 +1383,10 @@ class HistoryScreen(tk.Frame):
         self.history_ls = read_history()
         self.update_history_list()
 
+    def refresh_data(self):
+        self.history_ls = read_history()  # read the updated contents
+        self.update_history_list()
+
     def on_sort_change(self, event):
         # Called when the sort option is changed
         self.update_history_list()
@@ -1384,10 +1401,10 @@ class HistoryScreen(tk.Frame):
         # Sort the records by cost (index 6)
         sort_order = self.sort_var.get()
         if sort_order == "Cost Ascending":
-            sorted_history = sorted(get_data_hist, key=lambda x: int(x[6]))
+            sorted_history = sorted(get_data_hist, key=lambda x: float(x[6]))
         else:
             sorted_history = sorted(
-                get_data_hist, key=lambda x: int(x[6]), reverse=True
+                get_data_hist, key=lambda x: float(x[6]), reverse=True
             )
 
         top_ten = sorted_history[:10]

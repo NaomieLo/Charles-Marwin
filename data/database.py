@@ -92,21 +92,31 @@ def input_data(startLocation, endLocation, robot, ai, distance, time, cost):
             "endLocation must be of format (int, int) within the valid range"
         )
 
-    if not isinstance(robot, str) or robot not in ["robot1", "robot2", "robot3"]:
+    if not isinstance(robot, str) or robot not in ["Perseverance", "Curiosity", "Spirit"]:
         raise ValueError("robot must be a valid string")
 
-    if not isinstance(ai, str) or ai not in ["ai1", "ai2", "ai3"]:
+    if not isinstance(ai, str) or ai not in ["A*", "Bidirectional A*", "Multiresolution Pathfinder"]:
         raise ValueError("ai must be a valid string")
 
     if not isinstance(distance, (int, float)):
         raise ValueError("distance must be a number")
     # if not isinstance(time, int): #THIS MIGHT BE AN ISSUE SINCE NOT DATETIME
     # raise ValueError("time must be a number")
-    if not isinstance(cost, int):
+    if not isinstance(cost, float):
         raise ValueError("cost must be a number")
+    distance = round(distance, 2)
+    time = round(time, 2)
+    cost = round(cost, 2)
 
-    data = [startLocation, endLocation, robot, ai, distance, time, cost]
-    return data
+    return [
+        startLocation,
+        endLocation,
+        robot,
+        ai,
+        f"{distance:.2f}",
+        f"{time:.2f}",
+        f"{cost:.2f}",
+    ]
 
 
 def write_history_to_cloud(sheet_id, input_csv):
@@ -156,7 +166,6 @@ def write_history(data):
             writer = csv.writer(file)
             writer.writerow(values)
             file.flush()
-        print(f"\nSuccessfully logged.\n")
     except Exception as file_error:
         print(f"Failed to write to file: {file_error}")
 

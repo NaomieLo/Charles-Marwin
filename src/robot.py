@@ -42,13 +42,14 @@ class Robot:
             self.Mesh = "src/models/spirit/24883_MER_static.obj"
 
         self.Brain = None
+        
         if (brain == "A*"):
             self.Brain = AStar(None)
         elif (brain == "Bidirectional A*"):
             self.Brain = BidirectionalAStar(None)
         elif (brain == "Multiresolution Pathfinder"):
             self.Brain = MultiResolutionPathFinder(None)
-
+        self.brain_name = brain
         self.Sensor = None
         self.Path = []
         self.Motor = Motors(None, None)
