@@ -26,12 +26,24 @@ def main():
     dem_path = os.path.join(parent_dir,dem_path)
     dem_path_zip = os.path.join(parent_dir,dem_path_zip)
 
-    # Step 1: Unzip the DEM file if necessary
+    terr_path = 'src/data/terrain_mesh_section.vtk'
+    terr_path_zip = 'src/data/terrain_mesh_section.vtk.zip'
+
+    terr_path = os.path.join(parent_dir, terr_path)
+    terr_path_zip = os.path.join(parent_dir, terr_path_zip)
+
+    # Step 1: Unzip the DEM and terrain files if necessary
     try:
         unzip_dem(dem_path_zip, dem_path)
     except Exception as e:
-        print(f"Error during extraction: {e}")
+        print(f"Error during DEM extraction: {e}")
         exit(1)
+
+    try:
+        unzip_dem(terr_path_zip, terr_path)
+    except:
+        print(f"Error during terr extraction: {e}")
+        exit(1) 
     
     # Step 2: Display dataset information
     try:
