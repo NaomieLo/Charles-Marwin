@@ -1,7 +1,6 @@
 import transformations
 import time
-import sensors
-import threading
+from sensors import Sensor
 from typing import Dict, Any, Optional
 
 """
@@ -19,7 +18,7 @@ It assumes a battery bar where there are 'solar panels' on the robot.
 """
 
 class Motors:
-    DOWNHILL_POWER = 0.995
+    DOWNHILL_POWER = 0.995  # 0.5
     MILD_UPHILL_POWER = 0.975 # in order to consume 100 - 2.5 = 97.5
     STEEP_UPHILL_POWER = 0.97
     FLATGROUND_POWER = 0.99
@@ -37,16 +36,18 @@ class Motors:
         self.is_stopped = True
         self.charging_thread = None
         self.last_action_time = time.time()
+        self.sensor = Sensor(elevation_map, affine_transform)
         
 
     def charge_battery(self):
         """
-        While battery > 0, every 5 seconds charge the batters by %2 percent
+        While battery > 0, every 5 seconds charge the batters by %2 percent for background charging
             - If battery 100, stop charging
+        For foreground charging, it charges %2 every second and add bonus battery. 
+            It will charge until it is full
         """
         current_time = time.time()
         elapsed_time = current_time - self.last_action_time
-
         if elapsed_time >= 5:
             if self.battery < 100.0:
                 old_battery = self.battery
@@ -55,15 +56,16 @@ class Motors:
             self.last_action_time = current_time
         
         if self.is_stopped and self.battery < 100.0:
+            self.is_stopped = False
             while self.battery < 100:       # charge battery until 100 when stopped
                 old_battery = self.battery
+                time.sleep(1)#charge every second
                 self.battery = min(100.0, self.battery * self.BONUS_CHARGING)
-                self.is_stopped = False
                 print(f"Stop charking bonus: {old_battery:.1f}% -> {self.battery:.1f}%\n")
             
 
 
-    def consume_battery(self) -> bool: # not completed yet
+    def consume_battery(self,cur_elevation,next_elevation) -> bool:
         """
         Consuming battery according too elevation
          
@@ -74,37 +76,41 @@ class Motors:
             print("ERROR: Battery already depleted!\n")
             return False
 
-        elevation = sensors.Sensor.get_elevation_at_position
+        elevation_diff = next_elevation - cur_elevation
+
         old_battery = self.battery
         
         # Apply consumption based on elevation
-        if elevation < 0:
+        if elevation_diff < 0:
             # Downhill
             self.battery *= self.DOWNHILL_POWER
-        elif 0 <= elevation <= 10:
+        elif 0 <= elevation_diff <= 10:
             # Flat ground
             self.battery *= self.FLATGROUND_POWER
-        elif 10 < elevation <= 50:
+        elif 10 < elevation_diff <= 50:
             # Mild uphill
             self.battery *= self.MILD_UPHILL_POWER
-        elif 50 < elevation <= 100:
+        elif 50 < elevation_diff <= 100:
             # Steep uphill
             self.battery *= self.STEEP_UPHILL_POWER
         
-        # Make sure battery doesn't go below 0
-        self.battery = max(0.0, self.battery)
-
-        print(f"Battery: {old_battery:.1f}% -> {self.battery:.1f}%\n")
 
         # check battery status and give necessary warnings
-        if self.battery <= 0:
+        if self.battery <= 0.4:
             print("CRITICAL: Battery depleted! Charles Marwin shut down until recharged\n")
             self.stop()
             return False
         elif self.battery <= self.BATTERY_CRITICAL_THRESHOLD:
             print(f"CRITICAL: Battery level at {self.battery:.1f}%. Recharge required\n")
+            
         elif self.battery <= self.BATTERY_LOW_THRESHOLD:
             print(f"WARNING: Low battery level {self.battery:.1f}%\n")
+            
+        # Make sure battery doesn't go below 0
+        self.battery = max(0.0, self.battery)
+
+        print(f"Battery: {old_battery:.1f}% -> {self.battery:.1f}%\n")
+
 
         return True
 
@@ -118,6 +124,26 @@ class Motors:
 
     def get_battery(self):
         return max(0, self.battery)
+    
+
+    def get_next_consumption(self, current_node, next_node):
+        # current_node = [x, y]
+        curr_x, curr_y = current_node[0], current_node[1]
+        next_x, next_y = next_node[0], next_node[1]
+        curr_elevation  = self.sensor.get_elevation_at_positions(self, curr_x, curr_y)
+        next_elevation = self.sensor.get_elevation_at_position(self, next_x, next_y)
+        if self.sensor.is_passable(self, curr_x, curr_y, next_x, next_y):
+            if next_elevation < 0:
+                return 0.5
+            
+            elif 0 <= next_elevation <= 10:
+                return 1.0
+
+            elif 10 < next_elevation <= 50:
+                return 2.5
+
+            elif 50 < next_elevation <= 100:
+                return 3.0
 
 
     def start_motors(self) -> bool:
@@ -133,12 +159,6 @@ class Motors:
     
         self.is_running = True
         self.is_stopped = False
-
-        # Start the background charging thread
-        if self.charging_thread is None or not self.charging_thread.is_alive():
-            self.charging_thread = threading.Thread(target=self.background_charging)
-            self.charging_thread.daemon = True
-            self.charging_thread.start()
         
         print(f"Motors started\n")
         return True
@@ -147,9 +167,4 @@ class Motors:
         """Stop the motors and mark as stopped for bonus charging"""
         self.is_running = False
         self.is_stopped = True
-
-        # Stop threads
-        if self.charging_thread and self.charging_thread.is_alive():
-            self.charging_thread.join(timeout=1.0)
-        
         print(f"Motors stopped. Battery: {self.battery:.1f}%")

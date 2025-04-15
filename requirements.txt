@@ -10,6 +10,8 @@ matplotlib==3.10.0
 PyOpenGL==3.1.9
 PyOpenGL-accelerate==3.1.9
 pyglm==2.8.0
+pyqtgraph==0.13.7
+pyqt5==5.15.11
 pyvista==0.44.1
 pillow==11.1.0
 glfw==2.8.0

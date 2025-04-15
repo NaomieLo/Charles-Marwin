@@ -10,6 +10,10 @@ import numpy as np
 from PIL import Image
 from pyglm import glm
 from batterybar import BatteryBar
+from robot import Robot
+
+
+
 
 null_ptr = ctypes.c_void_p
 
@@ -17,7 +21,7 @@ class UI():
     def __init__(self):
         self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None; self.robot_roll = None
 
-        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None
+        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None; self.controller= None
 
         self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
 
@@ -31,9 +35,11 @@ class UI():
     def set_mesh(self, path):
         self.robot_mesh = path
 
-    def set_pos(self, x, y):
-        self.robot_pos.x = x; self.cam_pos.x = x
-        self.robot_pos.y = y; self.cam_pos.y = y
+    def set_pos(self, a, b, c):
+        x = a; y = b; z = -1 * c
+        self.robot_pos.x = x*46; self.cam_pos.x = x*46
+        self.robot_pos.y = y+8200; self.cam_pos.y = y+8202 #DUMMY HEIGHT, PLS CHECK
+        self.robot_pos.z = z*46; self.cam_pos.z = z*46 + 6
 
     def move_forward(self):
         self.robot_pos += self.robot_speed * self.robot_forward
@@ -58,7 +64,7 @@ class UI():
     def process_input(self, window):
         self.robot_speed = 2.5 * self.delta_time
         if (glfw.get_key(window, glfw.KEY_ESCAPE) == glfw.PRESS):
-            glfw.set_window_should_close(window,True)
+            glfw.set_window_should_close(self.window,True)
         if (glfw.get_key(window, glfw.KEY_W) == glfw.PRESS):
             self.move_forward()
         if (glfw.get_key(window, glfw.KEY_S) == glfw.PRESS):
@@ -115,16 +121,16 @@ class UI():
         glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
         # Initialize GL Context
-        window = glfw.create_window(800, 600, "Charles Marwin", None, None)
-        glfw.make_context_current(window)
-        glViewport(0,0,800,600)
+        self.window = glfw.create_window(1000, 800, "Charles Marwin", None, None)
+        glfw.make_context_current(self.window)
+        glViewport(0,0,1000,800)
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.0, 0.0, 0.0, 1.0)
-        glfw.set_cursor_pos_callback(window,self.mouse_callback)
+        #glfw.set_cursor_pos_callback(window,self.mouse_callback)
 
         # Compile Shader
-        self.shader = shader.Shader("vertex_shader.glsl", "fragment_shader.glsl")
-        self.shader2 = shader.Shader("vertex_shader_color.glsl", "fragment_shader_color.glsl")
+        self.shader = shader.Shader("src/vertex_shader.glsl", "src/fragment_shader.glsl")
+        self.shader2 = shader.Shader("src/vertex_shader_color.glsl", "src/fragment_shader_color.glsl")
 
         # Models and views
         self.cam_pos = glm.vec3(0.0, 2.0, 6.0)
@@ -132,71 +138,74 @@ class UI():
         self.robot_ang = 180.0
         self.robot_roll = 0
 
-        robot = mesh.Mesh(self.robot_mesh)
-        terrain = terraingen.Terrain("data/terrain_mesh_section.vtk")
+        self.robot = mesh.Mesh(self.robot_mesh)
+        self.terrain = terraingen.Terrain("src/data/terrain_mesh_section.vtk")
 
         self.battery_bar = BatteryBar()
 
         #print(terrain.obj_count)
 
-        tmodel = glm.rotate(glm.mat4(1.0), glm.radians(-90), glm.vec3(1.0, 0.0, 0.0))
-        tmodel = glm.translate(tmodel, glm.vec3(0.0, -0.666376*terrain.y_offset, 50.0))
-        tmodel = glm.scale(tmodel, glm.vec3(1.0, 1.0, 1.0))
-        projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
-
-        # ======================= #
-        #       RENDER LOOP       #
-        # ======================= #
-        while not (glfw.window_should_close(window)):
-          # Update deltatime
-          current_frame = glfw.get_time()
-          self.delta_time = current_frame - self.last_frame
-          self.last_frame = current_frame
-
-          # Process input
-          self.process_input(window)
-
-          #Render stuff here
-          self.shader2.use()
-            
-          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-          view = glm.lookAt(self.cam_pos, self.cam_pos+self.cam_front, self.cam_up)
-          #view = glm.rotate(view_pos, glm.radians(45), glm.vec3(1.0, 0.0, 0.0))
-
-          glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "model"), 1, False, glm.value_ptr(tmodel))
-          glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "view"), 1, False, glm.value_ptr(view))
-          glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "projection"), 1, False, glm.value_ptr(projection))
-
-          terrain.draw()
-
-          self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
-
-          rmodel = glm.rotate(glm.translate(glm.mat4(1), self.robot_pos), glm.radians(self.robot_ang), glm.vec3(0.0, 1.0, 0.0))
-          rmodel = glm.scale(rmodel, glm.vec3(0.3, 0.3, 0.3))
-          rmodel = glm.rotate(rmodel, glm.radians(self.robot_roll), glm.vec3(-1.0, 0.0, 0.0))
-
-          glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
-          glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
-          glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(projection))
-
-          robot.draw()
-
-          #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
-
-          # Update and draw battery bar
-          self.battery -= self.delta_time * 0.002
-          self.battery = max(0.0, self.battery)
-          self.battery_bar.fill = self.battery
-          
-          glDisable(GL_DEPTH_TEST)
-          self.battery_bar.draw(800, 600)
-          glEnable(GL_DEPTH_TEST)
-
-          # events & buffer swap
-          glfw.swap_buffers(window)
-          glfw.poll_events()
-
+        self.tmodel = glm.rotate(glm.mat4(1.0), glm.radians(-90), glm.vec3(1.0, 0.0, 0.0))
+        self.tmodel = glm.translate(self.tmodel, glm.vec3(0.0, -0.666376*self.terrain.y_offset, 50.0))
+        self.tmodel = glm.scale(self.tmodel, glm.vec3(1.0, 1.0, 1.0))
+        self.projection = glm.perspective(glm.radians(45.0), 800 / 600, 0.1, 2000000.0)
+        
+    def terminate(self):
         glfw.terminate()
 
-ui_instance = UI()
-ui_instance.main()
+    def update_frame(self):
+        # Update deltatime
+        current_frame = glfw.get_time()
+        self.delta_time = current_frame - self.last_frame
+        self.last_frame = current_frame
+
+        # Process input
+        self.process_input(self.window)
+
+        #Render stuff here
+        self.shader2.use()
+        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        view = glm.lookAt(self.cam_pos, self.robot_pos, self.cam_up)
+        #view = glm.rotate(view_pos, glm.radians(45), glm.vec3(1.0, 0.0, 0.0))
+
+        glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "model"), 1, False, glm.value_ptr(self.tmodel))
+        glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "view"), 1, False, glm.value_ptr(view))
+        glUniformMatrix4fv(glGetUniformLocation(self.shader2.pid, "projection"), 1, False, glm.value_ptr(self.projection))
+
+        self.terrain.draw()
+
+        self.shader.use() # NOTICE: If only one shader is in use, can place this in setup.
+
+        rmodel = glm.rotate(glm.translate(glm.mat4(1), self.robot_pos), glm.radians(self.robot_ang), glm.vec3(0.0, 1.0, 0.0))
+        rmodel = glm.scale(rmodel, glm.vec3(0.3, 0.3, 0.3))
+        rmodel = glm.rotate(rmodel, glm.radians(self.robot_roll), glm.vec3(-1.0, 0.0, 0.0))
+
+        glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "model"), 1, False, glm.value_ptr(rmodel))
+        glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "view"), 1, False, glm.value_ptr(view))
+        glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, False, glm.value_ptr(self.projection))
+
+        self.robot.draw()
+
+        #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
+
+        # Update and draw battery bar
+        self.battery = self.controller.robot.Motor.get_battery()
+        self.battery = max(0.0, self.battery)
+        self.battery_bar.fill = self.battery/ 100.0
+        
+        glDisable(GL_DEPTH_TEST)
+        self.battery_bar.draw(800, 600)
+        glEnable(GL_DEPTH_TEST)
+
+        # events & buffer swap
+        glfw.swap_buffers(self.window)
+        glfw.poll_events()
+
+
+if __name__ == "__main__":
+    ui_instance = UI()
+    ui_instance.set_mesh("src/models/perseverance/ImageToStl.com_25042_perseverance.obj")
+    ui_instance.main()
+    while(1):
+        ui_instance.update_frame()

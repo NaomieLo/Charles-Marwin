@@ -13,6 +13,7 @@ class Sensor:
         self.affine_transform = affine_transform
 
 
+    
     def get_neighbors(self, r, c):
         neighbors = []
         for dx, dy in [(-1,0), (1,0), (0,-1), (0,1), (1,1), (-1,1), (-1,-1), (1,-1)]:

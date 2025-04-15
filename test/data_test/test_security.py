@@ -6,13 +6,17 @@ import shutil
 import sys
 from unittest.mock import patch, mock_open
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data")))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data"))
+)
 import database
 
 
-# Promopsed fix
-# Token File Permissions, After creating the token file (e.g., token.json), use os.chmod(token_path, 0o600)
+# Proposed fix
+# 1. Token File Permissions, After creating the token file (e.g., token.json), use os.chmod(token_path, 0o600)
 # to ensure that only the owner has read/write permissions.
+
+# 2. Add extra checks for input into the csv to avoid injection attacks
 
 
 class TestDatabaseSecurity(unittest.TestCase):
@@ -29,12 +33,22 @@ class TestDatabaseSecurity(unittest.TestCase):
         self.history_csv_path = os.path.join(self.test_dir, "history.csv")
         with open(self.history_csv_path, "w", newline="") as f:
             writer = csv.writer(f)
-            writer.writerow(["startLocation", "endLocation", "robot", "ai", "distance", "time", "cost"])
-        #database.HISTORY_CSV = self.history_csv_path
+            writer.writerow(
+                [
+                    "startLocation",
+                    "endLocation",
+                    "robot",
+                    "ai",
+                    "distance",
+                    "time",
+                    "cost",
+                ]
+            )
+        # database.HISTORY_CSV = self.history_csv_path
         database.HISTORY_CSV = "data/history.csv"
 
     def tearDown(self):
-        """Remove the temporary directory """
+        """Remove the temporary directory"""
         shutil.rmtree(self.test_dir)
 
     def test_input_data_injection(self):
@@ -50,9 +64,12 @@ class TestDatabaseSecurity(unittest.TestCase):
         travel_time = 50
         cost = 10
 
-        with self.assertRaises(ValueError, msg="input_data() should reject non-whitelisted robot strings"):
-            database.input_data(start, end, malicious_robot, malicious_ai, distance, travel_time, cost)
-
+        with self.assertRaises(
+            ValueError, msg="input_data() should reject non-whitelisted robot strings"
+        ):
+            database.input_data(
+                start, end, malicious_robot, malicious_ai, distance, travel_time, cost
+            )
 
     def test_token_file_permissions(self):
         """
@@ -66,13 +83,33 @@ class TestDatabaseSecurity(unittest.TestCase):
         """
         Write a row containing a potential CSV injection payload and verify that the CSV file stores the data exactly as given
         """
-        data = [(1, 2), (3, 4), "=cmd|' /C calc'!A0", "<script>alert(1)</script>", 100, 50, 10]
+        data = [
+            (1, 2),
+            (3, 4),
+            "=cmd|' /C calc'!A0",
+            "<script>alert(1)</script>",
+            100,
+            50,
+            10,
+        ]
         database.write_history(data)
         with open(database.HISTORY_CSV, "r") as f:
             rows = list(csv.reader(f))
-        expected_row = [str((1, 2)), str((3, 4)), "=cmd|' /C calc'!A0", "<script>alert(1)</script>", "100", "50", "10"]
-        self.assertEqual(rows[-1], expected_row,
-                         "CSV file should contain the exact data without any unintended modifications")
+        expected_row = [
+            str((1, 2)),
+            str((3, 4)),
+            "=cmd|' /C calc'!A0",
+            "<script>alert(1)</script>",
+            "100",
+            "50",
+            "10",
+        ]
+        self.assertEqual(
+            rows[-1],
+            expected_row,
+            "CSV file should contain the exact data without any unintended modifications",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

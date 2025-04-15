@@ -5,11 +5,20 @@ from tkinter import ttk
 from tkinter import PhotoImage
 from tkinter import Entry
 from tkinter import font as tkFont
+from tkinter import messagebox
 from PIL import Image, ImageTk
 from robot import Robot
+from robot_render import UI
+import turtle
+import math
+import rasterio
+import transformations
+import time as timemodule
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../data")))
 from database import *
+import Exceptions
+
 
 # SELECT THE ROBOT AND PFA helper
 class Scroller(tk.Frame):
@@ -35,6 +44,7 @@ class Scroller(tk.Frame):
             width=20,
             height=5,
             bg="white",
+            fg="black",
             relief="solid",
             font=("Roboto", 14),
         )
@@ -55,6 +65,7 @@ class Scroller(tk.Frame):
 
     def update_display(self):
         self.item_label.config(text=str(self.items[self.index]))
+
 
 class Table(tk.Frame):
 
@@ -80,15 +91,16 @@ class Table(tk.Frame):
         self._widgets[0][5].configure(text="Time", font=("Orbitron, 12"))
         self._widgets[0][6].configure(text="Cost", font=("Orbitron, 12"))
 
-        last_ten = content[(len(content)-11):len(content)]
+        last_ten = content[(len(content) - 11) : len(content)]
 
         i = 10
 
-        for r in range(1,11):
-            for c in range (columns):
+        for r in range(1, 11):
+            for c in range(columns):
                 widget = self._widgets[r][c]
-                widget.configure(text="%s"%(last_ten[i][c]), font=("Orbitron, 12"))
+                widget.configure(text="%s" % (last_ten[i][c]), font=("Orbitron, 12"))
             i -= 1
+
 
 class ToggledFrame(tk.Frame):
 
@@ -101,10 +113,18 @@ class ToggledFrame(tk.Frame):
         self.title_frame = ttk.Frame(self)
         self.title_frame.pack(fill="x", expand=1)
 
-        ttk.Label(self.title_frame, text=text, font=("Orbitron", 20)).pack(side="left", fill="x", expand=1)
+        ttk.Label(self.title_frame, text=text, font=("Orbitron", 20)).pack(
+            side="left", fill="x", expand=1
+        )
 
-        self.toggle_button = ttk.Checkbutton(self.title_frame, width=2, text='+', command=self.toggle,
-                                            variable=self.show, style='Toolbutton')
+        self.toggle_button = ttk.Checkbutton(
+            self.title_frame,
+            width=2,
+            text="+",
+            command=self.toggle,
+            variable=self.show,
+            style="Toolbutton",
+        )
         self.toggle_button.pack(side="left")
 
         self.sub_frame = tk.Frame(self, relief="sunken", borderwidth=1)
@@ -112,10 +132,11 @@ class ToggledFrame(tk.Frame):
     def toggle(self):
         if bool(self.show.get()):
             self.sub_frame.pack(fill="x", expand=1)
-            self.toggle_button.configure(text='-')
+            self.toggle_button.configure(text="-")
         else:
             self.sub_frame.forget()
-            self.toggle_button.configure(text='+')
+            self.toggle_button.configure(text="+")
+
 
 # Driver class to connect all the screens
 class App(tk.Tk):
@@ -125,11 +146,15 @@ class App(tk.Tk):
         self.geometry("800x600")
         self.resizable(True, True)
         self.robot = Robot("Default", "None")
+        self.robot_ui = UI()
+        self.robot_ui.controller = self
 
-        container = tk.Frame(self)
-        container.pack(side="top", fill="both", expand=True)
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
+        self.container = tk.Frame(self)
+        self.container.pack(side="top", fill="both", expand=True)
+
+        # Optionally configure the grid if you're using it for layout
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
 
         # load background and logo images
         try:
@@ -155,16 +180,32 @@ class App(tk.Tk):
             self.station_orig = None
             self.station_img = None
 
-        # store the screens in a dictionary 
+        # store the screens in a dictionary
         self.frames = {}
-        for F in (WelcomeScreen, MainMenuScreen, SelectionScreen, SpawnScreen, DummyPage, FinishScreen, MetricDisplay, HistoryScreen):
+        for F in (
+            WelcomeScreen,
+            MainMenuScreen,
+            SelectionScreen,
+            SpawnScreen,
+            DummyPage,
+            FinishScreen,
+            HistoryScreen,
+        ):
+
             page_name = F.__name__
             if page_name == "WelcomeScreen":
-                frame = F(parent=container, controller=self, bg_image=self.welcome_bg, logo_image=self.logo_img)
+                frame = F(
+                    parent=self.container,
+                    controller=self,
+                    bg_image=self.welcome_bg,
+                    logo_image=self.logo_img,
+                )
             elif page_name == "MainMenuScreen":
-                frame = F(parent=container, controller=self, logo_image=self.logo_img)
+                frame = F(
+                    parent=self.container, controller=self, logo_image=self.logo_img
+                )
             else:
-                frame = F(parent=container, controller=self)
+                frame = F(parent=self.container, controller=self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
@@ -172,6 +213,15 @@ class App(tk.Tk):
 
     def show_frame(self, page_name):
         """Raise the frame corresponding to the given page name."""
+        if page_name == "MetricDisplay":
+            self.frames["MetricDisplay"] = MetricDisplay(
+                parent=self.container, controller=self
+            )
+            self.frames["MetricDisplay"].grid(row=0, column=0, sticky="nsew")
+
+        if page_name == "HistoryScreen":
+            self.frames["HistoryScreen"].refresh_data()
+
         frame = self.frames[page_name]
         frame.tkraise()
 
@@ -187,8 +237,10 @@ class WelcomeScreen(tk.Frame):
 
         # backgroun image
         if bg_image:
-            self.bg_image = bg_image  
-            self.bg_image_id = self.canvas.create_image(0, 0, image=self.bg_image, anchor="nw")
+            self.bg_image = bg_image
+            self.bg_image_id = self.canvas.create_image(
+                0, 0, image=self.bg_image, anchor="nw"
+            )
             self.canvas.bind("<Configure>", self._resize_bg)
         else:
             self.canvas.config(bg="white")
@@ -200,7 +252,9 @@ class WelcomeScreen(tk.Frame):
             font=("Roboto", 20),
             command=lambda: self.controller.show_frame("MainMenuScreen"),
         )
-        self.start_button_id = self.canvas.create_window(0, 0, window=start_button, anchor="center")
+        self.start_button_id = self.canvas.create_window(
+            0, 0, window=start_button, anchor="center"
+        )
 
     def _resize_bg(self, event):
         # backgound should cover the entire screen, and screen should be able to change sizes
@@ -208,10 +262,14 @@ class WelcomeScreen(tk.Frame):
             orig_width, orig_height = self.controller.welcome_bg_orig.size
             scale = max(event.width / orig_width, event.height / orig_height)
             new_size = (int(orig_width * scale), int(orig_height * scale))
-            resized_bg = self.controller.welcome_bg_orig.resize(new_size, Image.Resampling.LANCZOS)
+            resized_bg = self.controller.welcome_bg_orig.resize(
+                new_size, Image.Resampling.LANCZOS
+            )
             left = (new_size[0] - event.width) // 2
             top = (new_size[1] - event.height) // 2
-            cropped_bg = resized_bg.crop((left, top, left + event.width, top + event.height))
+            cropped_bg = resized_bg.crop(
+                (left, top, left + event.width, top + event.height)
+            )
             self.bg_image = ImageTk.PhotoImage(cropped_bg)
             self.canvas.itemconfig(self.bg_image_id, image=self.bg_image)
 
@@ -221,20 +279,25 @@ class WelcomeScreen(tk.Frame):
             orig_logo_width, orig_logo_height = self.controller.logo_orig.size
             logo_ratio = orig_logo_height / orig_logo_width
             new_logo_height = int(new_logo_width * logo_ratio)
-            resized_logo = self.controller.logo_orig.resize((new_logo_width, new_logo_height), Image.Resampling.LANCZOS)
+            resized_logo = self.controller.logo_orig.resize(
+                (new_logo_width, new_logo_height), Image.Resampling.LANCZOS
+            )
             self.logo_image = ImageTk.PhotoImage(resized_logo)
             logo_x = event.width // 2
             logo_y = int(event.height * 0.30)
-            if hasattr(self, 'logo_image_id'):
+            if hasattr(self, "logo_image_id"):
                 self.canvas.coords(self.logo_image_id, logo_x, logo_y)
                 self.canvas.itemconfig(self.logo_image_id, image=self.logo_image)
             else:
-                self.logo_image_id = self.canvas.create_image(logo_x, logo_y, image=self.logo_image, anchor="center")
+                self.logo_image_id = self.canvas.create_image(
+                    logo_x, logo_y, image=self.logo_image, anchor="center"
+                )
 
         # button moves as screen size adjusted
         start_x = event.width // 2
         start_y = int(event.height * 0.90)
         self.canvas.coords(self.start_button_id, start_x, start_y)
+
 
 # main menu
 class MainMenuScreen(tk.Frame):
@@ -277,9 +340,12 @@ class MainMenuScreen(tk.Frame):
             orig_logo_width, orig_logo_height = self.controller.logo_orig.size
             logo_ratio = orig_logo_height / orig_logo_width
             new_logo_height = int(new_logo_width * logo_ratio)
-            resized_logo = self.controller.logo_orig.resize((new_logo_width, new_logo_height), Image.Resampling.LANCZOS)
+            resized_logo = self.controller.logo_orig.resize(
+                (new_logo_width, new_logo_height), Image.Resampling.LANCZOS
+            )
             self.logo_image = ImageTk.PhotoImage(resized_logo)
             self.logo_label.config(image=self.logo_image)
+
 
 # Selection Screen
 class SelectionScreen(tk.Frame):
@@ -292,15 +358,19 @@ class SelectionScreen(tk.Frame):
 
         # robot scroller
         scroller1 = Scroller(
-            top_frame, "Select Your Robot", items=["Robot 1", "Robot 2", "Robot 3", 
-                                                   "Robot 4", "Robot 5", "Robot 6", "Robot 7"], bg_color="#D99F6B"
+            top_frame,
+            "Select Your Robot",
+            items=["Perseverance", "Curiosity", "Spirit"],
+            bg_color="#D99F6B",
         )
         scroller1.pack(pady=10)
 
         # pfa scroller
         scroller2 = Scroller(
-            top_frame, "Select Your AI", items=["A*", "Bidirectional A*",
-                                                "Multiresolution Pathfinder"], bg_color="#D99F6B"
+            top_frame,
+            "Select Your AI",
+            items=["A*", "Bidirectional A*", "Multiresolution Pathfinder"],
+            bg_color="#D99F6B",
         )
         scroller2.pack(pady=10)
 
@@ -315,8 +385,12 @@ class SelectionScreen(tk.Frame):
         )
 
         def make_robot():
-            controller.robot = Robot(scroller1.items[scroller1.index], scroller2.items[scroller2.index])
             controller.show_frame("SpawnScreen")
+            controller.robot = Robot(
+                scroller1.items[scroller1.index], scroller2.items[scroller2.index]
+            )
+            controller.robot.Sensor = controller.robot.Brain.sensor
+            controller.robot_ui.set_mesh(controller.robot.Mesh)
 
         btn_next = tk.Button(
             bottom_frame,
@@ -328,61 +402,252 @@ class SelectionScreen(tk.Frame):
         btn_back.pack(side="left", padx=20)
         btn_next.pack(side="right", padx=20)
 
-# Spawn Screen
+
+
+#Spawn Screen
 class SpawnScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#D99F6B")
+        self.start_points_actual = []
+        self.silicon_points_actual = []
         self.controller = controller
+        title_label = tk.Label(
+            self,
+            text="Select Your Station Location",
+            font=("Orbitron", 24),
+            bg="#D99F6B",
+        )
+        title_label.pack(pady=(10, 5))
 
-        title_label = tk.Label(self, text="Select Your Station Location", font=("Orbitron", 24), bg="#D99F6B")
-        title_label.pack(pady=10)
+        self.point_dict = {}
 
-        main_frame = tk.Frame(self, bg="#D99F6B")
-        main_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        dem_path = "data/MarsMGSMOLA_MAP2_EQUI.tif"
+        with rasterio.open(dem_path) as data:
+            affine_transformation = data.transform
+            crs = data.crs
+
+        # setting up formward and inverse transformers
+        transformer = transformations.setup_transformer(crs)
+        inverse_transformer = transformations.setup_reverse_transformer(crs)
+        inverse_affine = (
+            ~affine_transformation
+        )  # inver the affine transformation for reverse conversion
+
+        # pre-defined instance variables for coordinates for selection
+        self.start_points_latlong = [
+            (81.13618240074565, 33.62664919911721),
+            (78.91680726267303, 34.582734719042755),
+            (79.59810723867244, 31.396575566973826),
+            (80.33658388771461, 33.602280285223856),
+            (78.04577624678807, 32.35789063699329),
+        ]
+
+        self.silicon_points_latlong = [
+            (80.43372651754812, 32.88977863165752),
+            (78.69085081650587, 33.91451081145679),
+            (79.72087817305196, 33.94044042500557),
+        ]
+
+        # Convert latlong to xy using transformations
+        for coord in self.start_points_latlong:
+            x, y = transformations.latlong_to_xy(
+                coord[0], coord[1], inverse_transformer
+            )
+            self.start_points_actual.append(
+                transformations.xy_to_rowcol(x, y, inverse_affine)
+            )
+
+        for coord in self.silicon_points_latlong:
+            x, y = transformations.latlong_to_xy(
+                coord[0], coord[1], inverse_transformer
+            )
+            self.silicon_points_actual.append(
+                transformations.xy_to_rowcol(x, y, inverse_affine)
+            )
+
+        
+        self.start_options = [f"{pt[0]},{pt[1]}" for pt in self.start_points_actual]
+        self.silicon_options = [f"{pt[0]},{pt[1]}" for pt in self.silicon_points_actual]
+        self.selected_start = None  # tuple (x,y)
+        self.selected_end = None
+
+        dropdown_frame = tk.Frame(self, bg="#D99F6B")
+        dropdown_frame.pack(pady=10)
+
+        # Start point dropdown
+        start_label = tk.Label(
+            dropdown_frame, text="Start Point:", bg="#D99F6B", font=("Roboto", 12)
+        )
+        start_label.grid(row=0, column=0, padx=5)
+        self.start_var = tk.StringVar(self)
+        self.start_var.set("Select Start")
+        start_menu = tk.OptionMenu(
+            dropdown_frame,
+            self.start_var,
+            *self.start_options,
+            command=self.update_start_selection,
+        )
+        start_menu.config(font=("Roboto", 12))
+        start_menu.grid(row=0, column=1, padx=5)
+        # end point dropdown
+        silicon_label = tk.Label(
+            dropdown_frame, text="End Point:", bg="#D99F6B", font=("Roboto", 12)
+        )
+        silicon_label.grid(row=0, column=2, padx=5)
+        self.silicon_var = tk.StringVar(self)
+        self.silicon_var.set("Select End")
+        silicon_menu = tk.OptionMenu(
+            dropdown_frame,
+            self.silicon_var,
+            *self.silicon_options,
+            command=self.update_silicon_selection,
+        )
+        silicon_menu.config(font=("Roboto", 12))
+        silicon_menu.grid(row=0, column=3, padx=5)
 
         # image of the map
-        image_frame = tk.Frame(main_frame, bg="#000000")
-        image_frame.pack(side="left", fill="both", expand=True, padx=10)
+        map_frame = tk.Frame(self, bg="#000000")
+        map_frame.pack(pady=10)
+        self.map_width = 500
+        self.map_height = 300
         if controller.station_orig:
-            self.station_canvas = tk.Canvas(image_frame, bg="#000000", highlightthickness=0)
-            self.station_canvas.pack(fill="both", expand=True)
+            self.station_canvas = tk.Canvas(
+                map_frame,
+                width=self.map_width,
+                height=self.map_height,
+                bg="#000000",
+                highlightthickness=0,
+            )
+            self.station_canvas.pack()
             self.station_canvas.bind("<Configure>", self._resize_station)
-            self.station_image_id = None
         else:
-            tk.Label(image_frame, text="Station Image", font=("Orbitron", 20), bg="#000000", fg="white").pack(expand=True)
-
-        # coordinates
-        table_frame = tk.Frame(main_frame, bg="#D99F6B")
-        table_frame.pack(side="right", fill="y", padx=10)
-        header_x = tk.Label(table_frame, text="X", font=("Roboto", 14), bg="#D99F6B")
-        header_y = tk.Label(table_frame, text="Y", font=("Roboto", 14), bg="#D99F6B")
-        header_x.grid(row=0, column=0, padx=5, pady=5)
-        header_y.grid(row=0, column=1, padx=5, pady=5)
-
- 
-        lbl_x = tk.Label(table_frame, text=str(10), font=("Roboto", 14), bg="#D99F6B")
-        lbl_y = tk.Label(table_frame, text=str(20), font=("Roboto", 14), bg="#D99F6B")
-        lbl_x.grid(row=0, column=0, padx=5, pady=5)
-        lbl_y.grid(row=0, column=1, padx=5, pady=5)
+            self.station_canvas = tk.Canvas(
+                map_frame,
+                width=self.map_width,
+                height=self.map_height,
+                bg="#000000",
+                highlightthickness=0,
+            )
+            self.station_canvas.pack()
+        self.start_marker_id = None
+        self.start_text_id = None
+        self.end_marker_id = None
+        self.end_text_id = None
 
         # go button
-        go_button = tk.Button(self, text="Go", font=("Roboto", 20), command=lambda: controller.show_frame("DummyPage"))
-        go_button.pack(pady=20)
+        go_button = tk.Button(
+            self, text="Go", font=("Roboto", 20), command=self.main_app_loop
+        )
+        #go_button.pack(pady=10)
+        go_button.place(relx=0.5, rely=0.9, anchor="center")
+
+    def update_start_selection(self, selection):
+        # Convert the selection string x,y into a coordinate tuple
+        try:
+            x_str, y_str = selection.split(",")
+            self.selected_start = (int(x_str), int(y_str))
+        except Exception as e:
+            print("Error in start selection:", e)
+            self.selected_start = None
+        self._draw_markers()
+
+    def update_silicon_selection(self, selection):
+        try:
+            x_str, y_str = selection.split(",")
+            self.selected_end = (int(x_str), int(y_str))
+        except Exception as e:
+            print("Error in silicon selection:", e)
+            self.selected_end = None
+        self._draw_markers()
+
+    def _draw_markers(self):
+        # Clear previous markers
+        if self.start_marker_id is not None:
+            self.station_canvas.delete(self.start_marker_id)
+            self.start_marker_id = None
+        if self.start_text_id is not None:
+            self.station_canvas.delete(self.start_text_id)
+            self.start_text_id = None
+        if self.end_marker_id is not None:
+            self.station_canvas.delete(self.end_marker_id)
+            self.end_marker_id = None
+        if self.end_text_id is not None:
+            self.station_canvas.delete(self.end_text_id)
+            self.end_text_id = None
+
+        # Draw the start marker if selected
+        if self.selected_start is not None:
+            x_orig, y_orig = self.selected_start
+            x, y = x_orig // 20, y_orig // 20
+            r = 5
+            self.start_marker_id = self.station_canvas.create_oval(
+                x - r, y - r, x + r, y + r, fill="green", outline="white"
+            )
+            self.start_text_id = self.station_canvas.create_text(
+                x, y - 10, text="Start", fill="white", font=("Roboto", 10)
+            )
+        # Draw the silicon
+        if self.selected_end is not None:
+            x_orig, y_orig = self.selected_end
+            # Scale down the silicon point so it appears on the map
+            x, y = x_orig // 8, y_orig // 20
+            r = 5
+            self.end_marker_id = self.station_canvas.create_oval(
+                x - r, y - r, x + r, y + r, fill="blue", outline="white"
+            )
+            self.end_text_id = self.station_canvas.create_text(
+                x, y - 10, text="End", fill="white", font=("Roboto", 10)
+            )
 
     def _resize_station(self, event):
+        # resize and center image
         if self.controller.station_orig:
             orig_width, orig_height = self.controller.station_orig.size
-            scale = max(event.width / orig_width, event.height / orig_height)
+            scale = max(self.map_width / orig_width, self.map_height / orig_height)
             new_size = (int(orig_width * scale), int(orig_height * scale))
-            resized = self.controller.station_orig.resize(new_size, Image.Resampling.LANCZOS)
-            left = (new_size[0] - event.width) // 2
-            top = (new_size[1] - event.height) // 2
-            cropped = resized.crop((left, top, left + event.width, top + event.height))
+            resized = self.controller.station_orig.resize(
+                new_size, Image.Resampling.LANCZOS
+            )
+            left = (new_size[0] - self.map_width) // 2
+            top = (new_size[1] - self.map_height) // 2
+            cropped = resized.crop(
+                (left, top, left + self.map_width, top + self.map_height)
+            )
             self.station_image = ImageTk.PhotoImage(cropped)
-            if self.station_image_id:
-                self.station_canvas.itemconfig(self.station_image_id, image=self.station_image)
+            if hasattr(self, "station_image_id") and self.station_image_id is not None:
+                self.station_canvas.itemconfig(
+                    self.station_image_id, image=self.station_image
+                )
             else:
-                self.station_image_id = self.station_canvas.create_image(0, 0, image=self.station_image, anchor="nw")
+                self.station_image_id = self.station_canvas.create_image(
+                    0, 0, image=self.station_image, anchor="nw"
+                )
+
+    def main_app_loop(self):
+        # ERROR HANDLEING!
+        #  Only allow proceeding if both start and end points are selected
+        if not self.selected_start or not self.selected_end:
+            messagebox.showerror(
+                "Selection Error", "Please select both a start and a silicon point."
+            )
+            return
+
+        # Print the selected coordinates
+        print("Selected Start:", self.selected_start)
+        print("Selected End:", self.selected_end)
+
+        # Proceed to the next screen
+        self.controller.show_frame("DummyPage")
+        start, end = self.get_selected_points()
+        if start and end and hasattr(self.controller.robot, "Brain"):
+            self.controller.robot.initPosition = start
+            self.controller.robot.endPosition = end
+        start_pos = self.controller.robot.initPosition
+        end_pos = self.controller.robot.endPosition
+        self.controller.frames["DummyPage"].start_robot(start_pos, end_pos)
+
+    def get_selected_points(self):
+        return self.selected_start, self.selected_end
 
 
 # Dummy Page FOR TERRAIN AND ROBOT
@@ -391,11 +656,197 @@ class DummyPage(tk.Frame):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        label = tk.Label(self, text="Dummy Page", font=("Orbitron", 24), bg="#D99F6B")
-        label.pack(pady=40)
+    def robot_get_path(self, start, end):
+        start_time = timemodule.time()
+        path = self.controller.robot.Brain.find_path(start, end)
+        end_time = timemodule.time()
 
-        next_button = tk.Button(self, text="Next", font=("Roboto", 20), command=lambda: controller.show_frame("FinishScreen"))
-        next_button.pack(pady=20)
+        elapsed_time = end_time - start_time
+        self.controller.robot.elapsed_time = elapsed_time
+
+        def distance_calc(p1, p2):
+            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+
+        distance = distance_calc(self.controller.robot.initPosition, self.controller.robot.endPosition)
+
+        if path is not None:
+            self.controller.robot.Path = path
+            
+            to_write = input_data(self.controller.robot.initPosition, self.controller.robot.endPosition, self.controller.robot.Name, self.controller.robot.brain_name, distance, elapsed_time, self.controller.robot.compute_path_cost())
+            write_history(to_write)
+
+        else:
+            raise Exceptions.NoPathFound("Failed to find a path")
+
+    def move_to_next_pos(self, elevation):
+        try:
+            r, c = self.controller.robot.get_next_pos_in_path()
+            self.controller.robot.curr_idx += 1
+            # Move the robot to next position in scene
+            print(c, r)
+
+            self.controller.robot_ui.set_pos(c, elevation, r)
+        except Exception as e:
+            print(e)
+
+    def start_robot(self, start, end):
+        """
+        The main execution loop of the robot is here
+        It finds the path and move the robot
+        It stops and charge the robot when there is no sufficient battery
+        Reture: True->reach end; False->failed to reach end
+        """
+        try:
+            robot = self.controller.robot
+            # find path
+            self.robot_get_path(start, end)
+            self.controller.iconify()
+            self.controller.robot_ui.main() 
+
+            # start engine
+            if robot.Motor.start_motors():
+                # main loop
+                iter = 1  # iteration counter for A*
+                while robot.Path[robot.curr_idx] != robot.endPosition:
+                    self.controller.robot_ui.update_frame()
+                    next = robot.get_next_pos_in_path()  # get next position
+                    curr = robot.Path[robot.curr_idx]
+
+                    if curr == robot.endPosition:
+                        self.controller.frames["FinishScreen"].label.configure(
+                            text="You've reached your destination!"
+                        )
+                        self.controller.robot_ui.terminate()
+                        self.controller.deiconify()
+                        self.controller.show_frame("FinishScreen")
+                        return True  # reach the end
+
+                    cur_elevation = robot.Sensor.get_elevation_at_position(
+                        curr[1], curr[0]
+                    )
+                    next_elevation = robot.Sensor.get_elevation_at_position(
+                        next[1], next[0]
+                    )
+                    if robot.Motor.consume_battery(cur_elevation, next_elevation):
+                        # has enough battery
+                        timemodule.sleep(0.15)
+                        self.move_to_next_pos(next_elevation)
+                    else:
+                        # not sufficient battery
+                        robot.Motor.stop()
+                        robot.Motor.charge_battery()  # charge until full
+                        robot.Motor.start_motors()  # restart motor
+
+                    if (robot.Path[-1] != robot.endPosition) and (
+                        robot.curr_idx == len(robot.Path) - 1
+                    ):
+                        # This part is only for A* since it is toooooo slow on a large map
+                        # the path is a partial path and robot has reach the end of the path
+
+                        if iter > 5:
+                            # early termination
+                            robot.Motor.stop()
+                            self.controller.frames["FinishScreen"].label.configure(
+                                text="Failed to reach the destination."
+                            )
+                            self.controller.robot_ui.terminate()
+                            self.controller.deiconify()
+                            self.controller.show_frame("FinishScreen")
+                            return False  # Failed to reach goal within 5 tries. 50 sec for each try
+
+                        self.robot_get_path(robot.Path[robot.curr_idx], end)
+                        iter += 1
+                        robot.curr_idx = 0
+
+                robot.Motor.stop()  # turn off motor
+                self.controller.robot_ui.terminate()
+                self.controller.deiconify()
+                self.controller.frames["FinishScreen"].label.configure(
+                    text="You've reached your destination!"
+                )
+                self.controller.show_frame("FinishScreen")
+                return True
+        except Exception as e:
+            print(e)
+            robot.Motor.stop()
+            self.controller.frames["FinishScreen"].label.configure(
+                text="Failed to reach the destination."
+            )
+            self.controller.robot_ui.terminate()
+            self.controller.deiconify()
+            self.controller.show_frame("FinishScreen")
+            return False
+
+        # DRAW THE ROVER
+        self.canvas = tk.Canvas(
+            self, width=400, height=400, bg="#D99F6B", highlightthickness=0, bd=0
+        )
+        self.canvas.pack(pady=20)
+
+        self.screen = turtle.TurtleScreen(self.canvas)
+        self.screen.bgcolor("#D99F6B")
+
+        self.rover = turtle.RawTurtle(self.screen)
+        rover_shape = turtle.Shape("compound")
+        # body
+        body_points = [(-50, -15), (50, -15), (50, 15), (-50, 15)]
+        rover_shape.addcomponent(body_points, "gray", "gray")
+
+        # wheels
+        wheel_radius = 10
+        wheel_y = -20  # Vertical position for wheels
+        wheel_centers = [(-40, wheel_y), (0, wheel_y), (40, wheel_y)]
+        for cx, cy in wheel_centers:
+            pts = circle_points(cx, cy, wheel_radius, steps=20)
+            rover_shape.addcomponent(pts, "black", "black")
+
+        # Top platform
+        top_platform_points = [(-20, 15), (20, 15), (20, 30), (-20, 30)]
+        rover_shape.addcomponent(top_platform_points, "lightgray", "lightgray")
+
+        # camera
+        camera_points = [(-3, 30), (3, 30), (3, 50), (-3, 50)]
+        rover_shape.addcomponent(camera_points, "dimgray", "dimgray")
+
+        # camera head
+        camera_head = circle_points(0, 55, 5, steps=20)
+        rover_shape.addcomponent(camera_head, "darkgray", "darkgray")
+
+        # antenna
+        antenna = [(30, 15), (34, 15), (35, 45), (30, 45)]
+        rover_shape.addcomponent(antenna, "dimgray", "dimgray")
+
+        antenna_head = circle_points(32, 50, 4, steps=20)
+        rover_shape.addcomponent(antenna_head, "darkgray", "darkgray")
+
+        self.screen.register_shape("rover", rover_shape)
+
+        # set turtle to rover shape
+        self.rover = turtle.RawTurtle(self.screen)
+        self.rover.shape("rover")
+        self.rover.color("black")
+        self.rover.speed(0)
+
+        self.rover.penup()
+        self.rover.goto(0, 0)
+
+        self.animate_rover()
+
+    def animate_rover(self):
+        """Rotate the rover a little and schedule the next rotation."""
+        self.rover.right(5)
+        self.after(50, self.animate_rover)
+
+
+def circle_points(cx, cy, r, steps=20):
+    pts = []
+    for i in range(steps):
+        angle = 2 * math.pi * i / steps
+        x = cx + r * math.cos(angle)
+        y = cy + r * math.sin(angle)
+        pts.append((x, y))
+    return pts
+
 
 # Finish Screen
 class FinishScreen(tk.Frame):
@@ -403,8 +854,13 @@ class FinishScreen(tk.Frame):
         super().__init__(parent, bg="#D99F6B")
         self.controller = controller
 
-        label = tk.Label(self, text="You've reached your destination!", font=("Orbitron", 24), bg="#D99F6B")
-        label.pack(pady=40)
+        self.label = tk.Label(
+            self,
+            text="You've reached your destination!",
+            font=("Orbitron", 24),
+            bg="#D99F6B",
+        )
+        self.label.pack(pady=40)
 
         button_frame = tk.Frame(self, bg="#D99F6B")
         button_frame.pack(pady=20)
@@ -413,88 +869,300 @@ class FinishScreen(tk.Frame):
             button_frame,
             text="Select New Robot and AI",
             font=("Roboto", 20),
-            command=lambda: controller.show_frame("SelectionScreen")
+            command=lambda: controller.show_frame("SelectionScreen"),
         )
         view_stats_button = tk.Button(
             button_frame,
             text="View Stats",
             font=("Roboto", 20),
-            command=lambda: controller.show_frame("MetricDisplay")
+            command=lambda: controller.show_frame("MetricDisplay"),
         )
         new_robot_button.grid(row=0, column=0, padx=10, pady=10)
         view_stats_button.grid(row=0, column=1, padx=10, pady=10)
 
 
-# Post run metric Display Screen
 class MetricDisplay(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
         self.controller = controller
 
-        label = tk.Label(self, text="Metric Display", font=("Orbitron", 24), bg="#011936", fg="white")
-        label.pack(pady=40)
+        robot = controller.robot
 
-        back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
+        # title
+        label = tk.Label(
+            self, text="Metric Display", font=("Orbitron", 24), bg="#011936", fg="white"
+        )
+        label.pack(pady=20)
+
+        # container for the 2 boxes
+        container = tk.Frame(self, bg="#011936")
+        container.pack(pady=20, padx=20)
+
+        # left = path visualization
+        path_frame = tk.Frame(
+            container, bg="#A64B00", bd=2, relief=tk.RAISED, width=400, height=400
+        )
+        path_frame.pack(side=tk.LEFT, padx=10)
+        path_frame.pack_propagate(False)
+
+        path_title = tk.Label(
+            path_frame, text="Path", font=("Orbitron", 16), bg="#A64B00", fg="white"
+        )
+        path_title.pack(pady=10)
+
+        path_canvas = tk.Canvas(
+            path_frame, bg="#A64B00", highlightthickness=0, width=360, height=340
+        )
+        path_canvas.pack(pady=10)
+
+        # sample path ...
+        path_canvas.create_line(
+            20, 280, 100, 240, 140, 180, 220, 110, 340, 40, fill="lightyellow", width=2
+        )
+
+        # start + end
+        path_canvas.create_oval(15, 275, 25, 285, fill="white", outline="white")
+        path_canvas.create_text(
+            45, 290, text=str(robot.initPosition), fill="white", anchor="n"
+        )
+
+        path_canvas.create_oval(335, 35, 345, 45, fill="white", outline="white")
+        path_canvas.create_text(
+            300, 20, text=str(robot.endPosition), fill="white", anchor="n"
+        )
+
+        # right = simulation stats
+        stats_frame = tk.Frame(
+            container, bg="#D99F6B", bd=2, relief=tk.RAISED, width=400, height=400
+        )
+        stats_frame.pack(side=tk.RIGHT, padx=10)
+        stats_frame.pack_propagate(False)
+
+        stats_title = tk.Label(
+            stats_frame, text="Stats", font=("Orbitron", 16), bg="#D99F6B", fg="white"
+        )
+        stats_title.pack(pady=10)
+
+        def distance_calc(p1, p2):
+            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+
+        distance = distance_calc(robot.initPosition, robot.endPosition)
+        elapsed_time_str = (
+            f"{robot.elapsed_time:.2f} s" if hasattr(robot, "elapsed_time") else "0.00 s"
+        )      
+        # stats found in path
+    
+        stats_data = [
+            ("Start Location:", str(robot.initPosition)),
+            ("End Location:", str(robot.endPosition)),
+            ("Robot:", robot.Name),
+            ("AI:", str(robot.brain_name)),
+            ("Distance:", f"{distance:.2f}"),
+            ("Time:", elapsed_time_str),
+            ("Cost:", str(round(robot.compute_path_cost(),2))),
+        ]
+
+        # frame for stats
+        stats_content = tk.Frame(stats_frame, bg="#FFFFFF")
+        stats_content.pack(
+            expand=True
+        )  # This will center vertically in the fixed-height frame
+
+        for label_text, value_text in stats_data:
+            stat_row = tk.Frame(stats_content, bg="#FFFFFF")
+            stat_row.pack(fill=tk.X, padx=10, pady=5)
+
+            label = tk.Label(
+                stat_row,
+                text=label_text,
+                font=("Orbitron", 16),
+                bg="#FFFFFF",
+                fg="black",
+                anchor="w",
+                width=15,
+            )
+            label.pack(side=tk.LEFT)
+
+            value = tk.Label(
+                stat_row,
+                text=value_text,
+                font=("Orbitron", 16, "bold"),
+                bg="#FFFFFF",
+                fg="black",
+                anchor="w",
+            )
+            value.pack(side=tk.LEFT)
+
+        # back button
+        back_button = tk.Button(
+            self,
+            text="Back",
+            font=("Orbitron", 16),
+            command=lambda: controller.show_frame("MainMenuScreen"),
+        )
         back_button.pack(pady=20)
 
 
-# History Screen from csv
 class HistoryScreen(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#011936")
         self.controller = controller
 
-        label = tk.Label(self, text="History", font=("Orbitron", 24), bg="#011936", fg="white")
+        label = tk.Label(
+            self, text="History", font=("Orbitron", 24), bg="#011936", fg="white"
+        )
         label.pack(pady=20)
 
-        back_button = tk.Button(self, text="Back", font=("Roboto", 20), command=lambda: controller.show_frame("MainMenuScreen"))
+        filter_frame = tk.Frame(self, bg="#011936")
+        filter_frame.pack(pady=10)
+        filter_label = tk.Label(
+            filter_frame, text="Sort by:", font=("Roboto", 14), bg="#011936", fg="white"
+        )
+        filter_label.pack(side="left", padx=(0, 10))
+
+        # Dropdown options
+        self.sort_var = tk.StringVar(value="Cost Ascending")
+        sort_options = ["Cost Ascending", "Cost Descending"]
+        sort_menu = ttk.Combobox(
+            filter_frame,
+            textvariable=self.sort_var,
+            values=sort_options,
+            state="readonly",
+            font=("Roboto", 14),
+        )
+        sort_menu.pack(side="left")
+        sort_menu.bind("<<ComboboxSelected>>", self.on_sort_change)
+
+        self.history_container = tk.Frame(self, bg="#011936")
+        self.history_container.pack(fill="both", expand=True)
+
+        back_button = tk.Button(
+            self,
+            text="Back",
+            font=("Roboto", 20),
+            command=lambda: controller.show_frame("MainMenuScreen"),
+        )
         back_button.pack(side="bottom", pady=20)
 
-        history_ls = read_history()
-        last_ten = []
+        self.history_ls = read_history()
+        self.update_history_list()
 
-        if (len(history_ls) <= 10):
-            last_ten = history_ls
+    def refresh_data(self):
+        self.history_ls = read_history()  # read the updated contents
+        self.update_history_list()
+
+    def on_sort_change(self, event):
+        # Called when the sort option is changed
+        self.update_history_list()
+
+    def update_history_list(self):
+        # Clear existing history items in the container frame
+        for widget in self.history_container.winfo_children():
+            widget.destroy()
+
+        get_data_hist = self.history_ls[1:] if self.history_ls else []
+
+        # Sort the records by cost (index 6)
+        sort_order = self.sort_var.get()
+        if sort_order == "Cost Ascending":
+            sorted_history = sorted(get_data_hist, key=lambda x: float(x[6]))
         else:
-            last_ten = history_ls[(len(history_ls)-11):len(history_ls)]
+            sorted_history = sorted(
+                get_data_hist, key=lambda x: float(x[6]), reverse=True
+            )
 
-        #j = 10
-        for i in range(1,len(last_ten)):
-        
-            t = ToggledFrame(self, text="%s - %s"%(last_ten[len(last_ten)-i][2], last_ten[len(last_ten)-i][3]), relief="raised", borderwidth=1)
-            t.pack(fill="x", expand=1, pady=2, padx=2, anchor="n")
+        top_ten = sorted_history[:10]
 
-            label = ttk.Label(t.sub_frame, text="Start", font=("Orbitron", 15), borderwidth=0, width=20)
+        for record in top_ten:
+
+            t = ToggledFrame(
+                self.history_container,
+                text="%s - %s" % (record[2], record[3]),
+                relief="raised",
+                borderwidth=1,
+            )
+            t.pack(fill="x", expand=True, pady=2, padx=2, anchor="n")
+
+            # Start Location
+            label = ttk.Label(
+                t.sub_frame,
+                text="Start",
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             label.grid(row=0, column=0, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][0]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(
+                t.sub_frame,
+                text="%s" % record[0],
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             cont.grid(row=1, column=0, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20)
+            # End Location
+            label = ttk.Label(
+                t.sub_frame, text="End", font=("Orbitron", 15), borderwidth=0, width=20
+            )
             label.grid(row=0, column=1, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][1]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(
+                t.sub_frame,
+                text="%s" % record[1],
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             cont.grid(row=1, column=1, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(t.sub_frame, text="Distance", font=("Orbitron", 15), borderwidth=0, width=20)
+            # Distance
+            label = ttk.Label(
+                t.sub_frame,
+                text="Distance",
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             label.grid(row=0, column=2, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][4]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(
+                t.sub_frame,
+                text="%s" % record[4],
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             cont.grid(row=1, column=2, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20)
+            # Time
+            label = ttk.Label(
+                t.sub_frame, text="Time", font=("Orbitron", 15), borderwidth=0, width=20
+            )
             label.grid(row=0, column=3, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][5]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(
+                t.sub_frame,
+                text="%s" % record[5],
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             cont.grid(row=1, column=3, sticky="nsew", padx=1, pady=1)
 
-            label = ttk.Label(t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20)
+            # Cost
+            label = ttk.Label(
+                t.sub_frame, text="Cost", font=("Orbitron", 15), borderwidth=0, width=20
+            )
             label.grid(row=0, column=4, sticky="nsew", padx=1, pady=1)
-            cont = ttk.Label(t.sub_frame, text="%s"%(last_ten[len(last_ten)-i][6]), font=("Orbitron", 15), borderwidth=0, width=20)
+            cont = ttk.Label(
+                t.sub_frame,
+                text="%s" % record[6],
+                font=("Orbitron", 15),
+                borderwidth=0,
+                width=20,
+            )
             cont.grid(row=1, column=4, sticky="nsew", padx=1, pady=1)
 
-            
-
-        
-        
 
 if __name__ == "__main__":
     app = App()
-    #load_fonts()
+    # load_fonts()
     app.mainloop()

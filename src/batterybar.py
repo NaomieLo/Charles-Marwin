@@ -9,7 +9,7 @@ class BatteryBar:
     def __init__(self):
         self.fill = 1.0  # battery life (1.0 = full, 0.0 = empty)
 
-        self.shader = shader.Shader("battery_vert.glsl", "battery_frag.glsl")
+        self.shader = shader.Shader("src/battery_vert.glsl", "src/battery_frag.glsl")
 
         # Rectangle from (0, 0) to (1, 0.1) — top-left corner of screen
         self.vertices = np.array([
@@ -51,7 +51,7 @@ class BatteryBar:
 
         # Transform bar to correct screen position (top-left corner)
         model = glm.translate(glm.mat4(1.0), glm.vec3(20, screen_height - 40, 0))
-        model = glm.scale(model, glm.vec3(200 * self.fill, 20, 1))
+        model = glm.scale(model, glm.vec3(200 * self.fill, 80, 1))
 
         # Send uniforms
         glUniformMatrix4fv(glGetUniformLocation(self.shader.pid, "projection"), 1, GL_FALSE, glm.value_ptr(projection))

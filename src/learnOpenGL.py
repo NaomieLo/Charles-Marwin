@@ -52,11 +52,14 @@ class Terrain(object):
         # Center terrain around (0,0,0)
         verts[:, 0] -= np.min(verts[:, 0])  
         verts[:, 1] -= np.min(verts[:, 1])  
-        verts[:, 2] -= np.mean(verts[:, 2])
+        verts[:, 2] -= np.min(verts[:, 2])
 
         self.y_offset = np.max(verts[:, 1])
-        print(np.max(verts[:, 1]))
-        print(np.mean(verts[:, 1]))
+        self.x_max = (np.max(verts[:, 0])); #print(self.x_max)
+        self.z_max = (np.max(verts[:, 1])); #print(self.z_max)
+        self.y_bound = (np.max(verts[:, 2]))
+
+        #self.x_ratio = 1; self.z_ratio = 1
 
         # Define improved colormap (light beige → dark brown)
         terrain_colors = LinearSegmentedColormap.from_list(
