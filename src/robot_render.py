@@ -10,6 +10,10 @@ import numpy as np
 from PIL import Image
 from pyglm import glm
 from batterybar import BatteryBar
+from robot import Robot
+
+
+
 
 null_ptr = ctypes.c_void_p
 
@@ -17,7 +21,7 @@ class UI():
     def __init__(self):
         self.shader = None; self.shader2 = None; self.cam_pos = None; self.robot_pos = None; self.robot_ang = None
 
-        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None
+        self.delta_time = 0.0; self.last_frame = 0.0; self.robot_speed = 0; self.robot_mesh = None; self.controller= None
 
         self.cam_front = glm.vec3(0.0, 0.0, -1.0); self.cam_up = glm.vec3(0.0, 1.0, 0.0)
 
@@ -174,9 +178,9 @@ class UI():
         #print(str(self.robot_pos.x)+", "+str(self.robot_pos.y)+", "+str(self.robot_pos.z))
 
         # Update and draw battery bar
-        self.battery -= self.delta_time * 0.002
+        self.battery = self.controller.robot.Motor.get_battery()
         self.battery = max(0.0, self.battery)
-        self.battery_bar.fill = self.battery
+        self.battery_bar.fill = self.battery/ 100.0
         
         glDisable(GL_DEPTH_TEST)
         self.battery_bar.draw(800, 600)

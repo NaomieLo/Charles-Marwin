@@ -147,6 +147,7 @@ class App(tk.Tk):
         self.resizable(True, True)
         self.robot = Robot("Default", "None")
         self.robot_ui = UI()
+        self.robot_ui.controller = self
 
         self.container = tk.Frame(self)
         self.container.pack(side="top", fill="both", expand=True)
