@@ -578,7 +578,7 @@ class SpawnScreen(tk.Frame):
         # Draw the start marker if selected
         if self.selected_start is not None:
             x_orig, y_orig = self.selected_start
-            x, y = x_orig // 20, y_orig // 20
+            x, y = x_orig // 15, y_orig // 30
             r = 5
             self.start_marker_id = self.station_canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill="green", outline="white"
@@ -590,7 +590,7 @@ class SpawnScreen(tk.Frame):
         if self.selected_end is not None:
             x_orig, y_orig = self.selected_end
             # Scale down the silicon point so it appears on the map
-            x, y = x_orig // 8, y_orig // 20
+            x, y = x_orig // 5, y_orig // 40
             r = 5
             self.end_marker_id = self.station_canvas.create_oval(
                 x - r, y - r, x + r, y + r, fill="blue", outline="white"
