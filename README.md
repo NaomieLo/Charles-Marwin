@@ -3,7 +3,9 @@
 ### Install Python
 We are using python 3.13 while 3.10 has been tested to be wroking fine so far. You can install the installer on *https://www.python.org/downloads/*.
 ### Install libraries
-'pip install -r requirements.txt'
+```bash
+pip install -r requirements.txt
+```
 
 ## Database 101
 -The first time you run the project/a function that reads or writes to the file, you will have to log 
@@ -24,15 +26,17 @@ update_history(): I wrote this function to serve as a type of delete function in
 
 ## Application set up: main.py
 Once the requirements have been installed and the database components are understood by the user, they must run the following command on their terminal:
-
-'python src/main.py'
+```bash
+python src/main.py
+```
 
 This script unzips the tif file with the elevation data and the vtk file with the terrain mesh. It also tests whether rasterio is functional and able to extract the required information.
 
 ## Running the app: screens.py
 Once the previous steps have been completed, the app will be functional and the user will be able to use it by running the following command:
-
-'python src/screens.py'
+```bash
+python src/screens.py
+```
  
 ## Using the app
 A Welcome Screen will be shown to the user. From here, they will be able to continue to the Main Menu, where they can choose to find a path or view the history with information about previous uses of the app. 
